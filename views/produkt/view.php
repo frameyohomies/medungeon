@@ -40,18 +40,4 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
     ]) ?>
 
-    <?= Html::beginForm(['produkt/buchen', 'id' => $model->id], 'post') ?>
-    <button type="button" onclick="mengeAnpassen(-1)">−</button>
-    <?= Html::input('number', 'delta', 0, ['id' => 'delta-input']) ?>
-    <button type="button" onclick="mengeAnpassen(1)">+</button>
-    <?= Html::submitButton('Buchen') ?>
-    <?= Html::endForm() ?>
-
-    <script>
-        function mengeAnpassen(richtung) {
-            const feld = document.getElementById('delta-input');
-            feld.value = parseInt(feld.value || 0) + richtung;
-        }
-    </script>
-
 </div>

@@ -18,7 +18,7 @@ $this->render('_head');
     <?php $this->head() ?>
     <title><?= Html::encode($this->title) ?></title>
 </head>
-<body class="d-flex flex-column h-100">
+<body class="d-flex flex-column h-100f">
 <?php $this->beginBody() ?>
 
 <?= $this->render('_header') ?>

@@ -30,6 +30,8 @@ class AppAsset extends AssetBundle
     ];
     public $js = [
         'js/color-mode.js',
+        'js/html5-qrcode.min.js',
+        'js/scan.js',
     ];
     public $jsOptions = [
         'position' => View::POS_HEAD,
