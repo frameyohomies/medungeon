@@ -12,17 +12,16 @@ $items = [
     [
         'label' => 'User',
         'url' => ['/benutzer/index'],
-        'visible' => !Yii::$app->user->isGuest,
+        'visible' => !Yii::$app->user->isGuest && Yii::$app->user->identity->rolle === 'admin',
     ],
     [
         'label' => 'Bestand',
         'url' => ['/produkt/index'],
-        'visible' => !Yii::$app->user->isGuest,
     ],
     [
         'label' => 'Verlauf',
         'url' => ['/bestand-bewegung/index'],
-        'visible' => !Yii::$app->user->isGuest,
+        'visible' => !Yii::$app->user->isGuest && Yii::$app->user->identity->rolle === 'admin',
     ],
     [
         'label' => 'Logout (' . Html::encode(trim((Yii::$app->user->identity?->firstname ?? '') . ' ' . (Yii::$app->user->identity?->lastname ?? ''))) . ')',
@@ -31,7 +30,6 @@ $items = [
             'data-method' => 'post',
             'class' => 'nav-link logout',
         ],
-        'visible' => !Yii::$app->user->isGuest,
     ],
 ];
 
@@ -54,17 +52,14 @@ $items = [
             'items' => $items,
         ],
     ) ?>
-
-
-
-    <?= Html::button(
-        '&#127769;',
-        [
-            'id' => 'theme-toggle',
-            'class' => 'btn btn-link nav-link fs-5',
-            'aria-label' => 'Switch to dark mode',
-        ],
-    ) ?>
+<!--    --><?php //= Html::button(
+//        '&#127769;',
+//        [
+//            'id' => 'theme-toggle',
+//            'class' => 'btn btn-link nav-link fs-5',
+//            'aria-label' => 'Switch to dark mode',
+//        ],
+//    ) ?>
     <?php NavBar::end() ?>
 </header>
 

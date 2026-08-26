@@ -13,7 +13,7 @@ $this->title = 'Login';
         <div class="position-relative py-4">
             <h1 class="display-5 fw-bold mb-3">medungeon</h1>
             <p class="lead opacity-75 mb-4">
-                Inventurverwaltung fürs Lager – schnell, nachvollziehbar, überall am Handy.
+                Inventurverwaltung fürs Lager – schnell, nachvollziehbar, überall.
             </p>
 
             <?php if (Yii::$app->user->isGuest): ?>
