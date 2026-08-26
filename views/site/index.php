@@ -23,6 +23,9 @@ $this->title = 'Login';
                 </a>
             <?php else: ?>
                 <p class="mb-3">Hallo, <?= Html::encode(Yii::$app->user->identity->firstname) ?></p>
+                <?php if (Yii::$app->user->identity->rolle === 'admin'): ?>
+                    <span class="badge bg-warning text-dark">Admin</span>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
