@@ -119,18 +119,18 @@ class ProduktController extends Controller
 
     public function actionBuchen($id)
     {
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
         $produkt = $this->findModel($id);
         $delta = (int) Yii::$app->request->post('delta');
-//        $benutzerId = Yii::$app->user->id;
-        $benutzerId = 2;
+        $benutzerId = 2; // Platzhalter bis Login steht
 
-        if ($produkt->buche($delta, $benutzerId)) {
-            Yii::$app->session->setFlash('success', 'Buchung erfolgreich');
-        } else {
-            Yii::$app->session->setFlash('error', 'Buchung fehlgeschlagen.');
-        }
+        $erfolg = $produkt->buche($delta, $benutzerId);
 
-        return $this->redirect(['view', 'id' => $id]);
+        return [
+            'success' => $erfolg,
+            'neuerBestand' => $produkt->quantitaet,
+        ];
     }
 
     public function actionLookup($barcode)

@@ -5,6 +5,8 @@
 /web/assets/
 /web/uploads/
 
+/config/params-local.php
+
 .env
 .env.local
 /config/db.php

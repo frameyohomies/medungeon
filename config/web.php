@@ -53,6 +53,19 @@ $config = [
             'rules' => [
             ],
         ],
+        'authClientCollection' => [
+            'class' => 'yii\authclient\Collection',
+            'clients' => [
+                'azure' => [
+                    'class' => 'chunlaw\authclient\Azure',
+                    'authUrl' => 'https://login.microsoftonline.com/44f224f4-9869-4112-ac48-f18eb4419850/oauth2/v2.0/authorize',
+                    'tokenUrl' => 'https://login.microsoftonline.com/44f224f4-9869-4112-ac48-f18eb4419850/oauth2/v2.0/token',
+                    'returnUrl' => 'https://medino-inventur.ddev.site/site/auth?authclient=azure',
+                    'clientId' => '54797bd5-6281-42f3-933f-115f5f047e75',
+                    'clientSecret' => Yii::$app->params['azureClientSecret'] ?? '',
+                ],
+            ],
+        ],
     ],
     'params' => $params,
 ];

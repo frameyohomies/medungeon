@@ -7,53 +7,132 @@ main > .container {
 
 :root {
     --color-primary: #8ea699;
+    --color-primary-rgb: 142, 166, 153;
     --color-primary-light: #bbcac2;
     --color-primary-lighter: #e8edeb;
     --color-primary-dark: #55645c;
+    --color-primary-dark-rgb: 85, 100, 92;
     --color-primary-darker: #1c211f;
 
     --color-accent: #a68e9b;
+    --color-accent-rgb: 166, 142, 155;
     --color-accent-light: #ded4da;
     --color-accent-dark: #6e5c67;
+    --color-accent-dark-rgb: 110, 92, 103;
 
     --color-background: #f7f9f8;
+    --color-background-rgb: 247, 249, 248;
     --color-surface: #ffffff;
     --color-border: #d2dbd6;
 
     --color-text-primary: #2f3b36;
+    --color-text-primary-rgb: 47, 59, 54;
     --color-text-secondary: #6b7871;
+    --color-text-secondary-rgb: 107, 120, 113;
 
     --color-success: #6e9c82;
+    --color-success-rgb: 110, 156, 130;
     --color-warning: #c9a66b;
+    --color-warning-rgb: 201, 166, 107;
     --color-danger: #b36159;
+    --color-danger-rgb: 179, 97, 89;
 
     --shadow-soft: 0 2px 8px rgba(43, 53, 49, 0.08);
     --shadow-medium: 0 4px 16px rgba(43, 53, 49, 0.15);
     --shadow-strong: 0 8px 24px rgba(43, 53, 49, 0.25);
 
     --font-family-base: 'Syne', sans-serif;
+
+    --bs-body-font-family: var(--font-family-base, sans-serif);
+    --bs-body-bg: var(--color-background);
+    --bs-body-bg-rgb: var(--color-background-rgb);
+    --bs-body-color: var(--color-text-primary);
+    --bs-body-color-rgb: var(--color-text-primary-rgb);
+    --bs-secondary-color: var(--color-text-secondary);
+    --bs-secondary-color-rgb: var(--color-text-secondary-rgb);
+    --bs-tertiary-bg: var(--color-surface);
+    --bs-border-color: var(--color-border);
+
+    --bs-primary: var(--color-primary-dark);
+    --bs-primary-rgb: var(--color-primary-dark-rgb);
+    --bs-secondary: var(--color-accent-dark);
+    --bs-secondary-rgb: var(--color-accent-dark-rgb);
+    --bs-success: var(--color-success);
+    --bs-success-rgb: var(--color-success-rgb);
+    --bs-warning: var(--color-warning);
+    --bs-warning-rgb: var(--color-warning-rgb);
+    --bs-danger: var(--color-danger);
+    --bs-danger-rgb: var(--color-danger-rgb);
+
+    --bs-link-color: var(--color-accent-dark);
+    --bs-link-hover-color: var(--color-accent);
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--color-primary-darker);
+    --bs-body-bg-rgb: 28, 33, 31;
+    --bs-body-color: var(--color-primary-lighter);
+    --bs-body-color-rgb: 232, 237, 235;
+    --bs-secondary-color: var(--color-primary-light);
+    --bs-secondary-color-rgb: 187, 202, 194;
+    --bs-tertiary-bg: var(--color-primary-dark);
+    --bs-border-color: var(--color-primary-dark);
+    --bs-link-color: var(--color-accent-light);
+    --bs-link-hover-color: var(--color-accent);
 }
 
 @font-face {
     font-family: 'Syne';
-    src: url('../fonts/syne/static/Syne-Regular.ttf') format('ttf');
+    src: url('../fonts/syne/static/Syne-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
 }
 
 @font-face {
     font-family: 'Syne';
-    src: url('../fonts/syne/static/Syne-Bold.ttf') format('ttf');
+    src: url('../fonts/syne/static/Syne-Bold.ttf') format('truetype');
     font-weight: 700;
     font-style: normal;
 }
 
-:root {
-    --font-family-base: 'Syne', sans-serif;
+body {
+    font-family: 'Syne', sans-serif;
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
 }
 
-body {
-    font-family: var(--font-family-base);
+h1, h2, h3, h4, h5, h6,
+.navbar-brand,
+.btn,
+.card-title {
+    font-family: 'Syne', sans-serif;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--color-primary-dark);
+    --bs-btn-border-color: var(--color-primary-dark);
+    --bs-btn-hover-bg: var(--color-primary);
+    --bs-btn-hover-border-color: var(--color-primary);
+    --bs-btn-active-bg: var(--color-primary-darker);
+    --bs-btn-active-border-color: var(--color-primary-darker);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--color-primary-dark);
+    --bs-btn-border-color: var(--color-primary-dark);
+    --bs-btn-hover-bg: var(--color-primary-dark);
+    --bs-btn-hover-border-color: var(--color-primary-dark);
+    --bs-btn-active-bg: var(--color-primary-darker);
+    --bs-btn-active-border-color: var(--color-primary-darker);
+}
+
+.btn-secondary {
+    --bs-btn-bg: var(--color-accent-dark);
+    --bs-btn-border-color: var(--color-accent-dark);
+    --bs-btn-hover-bg: var(--color-accent);
+    --bs-btn-hover-border-color: var(--color-accent);
+    --bs-btn-active-bg: var(--color-accent-dark);
+    --bs-btn-active-border-color: var(--color-accent-dark);
 }
 
 .not-set {
@@ -201,8 +280,8 @@ a.desc:after {
 /* login split card */
 .login-split-card {
     border-radius: 1rem;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, .10);
-    background-color: var(--bs-gray-100);
+    box-shadow: var(--shadow-medium);
+    background-color: var(--color-primary-lighter);
     width: 100%;
     max-width: 900px;
 }
@@ -221,7 +300,7 @@ a.desc:after {
 }
 
 .login-brand-panel {
-    background: linear-gradient(135deg, #40B3D8 0%, #3a9cbd 40%, #83C933 100%);
+    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-primary) 45%, var(--color-accent) 100%);
     position: relative;
     min-height: 480px;
 }
@@ -231,14 +310,15 @@ a.desc:after {
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(circle at 20% 80%, rgba(241, 138, 42, .25) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(131, 201, 51, .2) 0%, transparent 40%);
+        radial-gradient(circle at 20% 80%, rgba(var(--color-warning-rgb), .22) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(var(--color-success-rgb), .18) 0%, transparent 40%);
     pointer-events: none;
 }
 
 .login-btn {
-    background: linear-gradient(135deg, #40B3D8, #3a9cbd);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
     border: none;
+    color: #fff;
     font-weight: 600;
     letter-spacing: .02em;
     transition: opacity .2s, transform .1s;
@@ -323,7 +403,7 @@ a.desc:after {
 
 /* hero banner */
 .hero-banner {
-    background: linear-gradient(135deg, #83C933 0%, #3a9cbd 40%, #40B3D8 100%);
+    background: linear-gradient(135deg, var(--color-success) 0%, var(--color-primary) 45%, var(--color-accent) 100%);
     position: relative;
 }
 
@@ -345,20 +425,22 @@ a.desc:after {
     inset: 0;
     border-radius: inherit;
     background:
-        radial-gradient(circle at 15% 85%, rgba(241, 138, 42, .3) 0%, transparent 45%),
-        radial-gradient(circle at 85% 15%, rgba(131, 201, 51, .25) 0%, transparent 40%),
-        radial-gradient(ellipse at 50% 50%, rgba(64, 179, 216, .15) 0%, transparent 60%);
+        radial-gradient(circle at 15% 85%, rgba(var(--color-warning-rgb), .28) 0%, transparent 45%),
+        radial-gradient(circle at 85% 15%, rgba(var(--color-success-rgb), .22) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 50%, rgba(var(--color-accent-rgb), .12) 0%, transparent 60%);
     pointer-events: none;
 }
 
 /* extension cards */
 .extension-card {
+    background-color: var(--color-surface);
+    border-color: var(--color-border);
     transition: transform .15s ease-in-out, box-shadow .15s ease-in-out;
 }
 
 .extension-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .12) !important;
+    box-shadow: var(--shadow-strong) !important;
 }
 
 .extension-icon {
