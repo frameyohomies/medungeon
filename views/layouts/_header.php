@@ -40,7 +40,7 @@ $items = [
 <header id="header">
     <?php NavBar::begin(
         [
-            'brandLabel' => Yii::$app->name,
+            'brandLabel' => '<strong>' . Html::encode(Yii::$app->name) . '</strong>',
             'brandUrl' => Yii::$app->homeUrl,
             'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
         ],

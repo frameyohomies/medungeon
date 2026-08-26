@@ -24,7 +24,24 @@ main > .container {
     --color-background-rgb: 247, 249, 248;
     --color-surface: #ffffff;
     --color-border: #d2dbd6;
+.produkt-card__search-full-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: var(--color-primary);
+    color: var(--color-primary-darker);
+    font-weight: 600;
+    transition: background 0.15s ease;
+}
 
+.produkt-card__search-full-btn:hover {
+    background: var(--color-primary-light);
+}
     --color-text-primary: #2f3b36;
     --color-text-primary-rgb: 47, 59, 54;
     --color-text-secondary: #6b7871;
@@ -615,4 +632,61 @@ a.desc:after {
     background: var(--color-danger);
     border-color: var(--color-danger);
     color: #fff;
+}
+
+.produkt-card__search-full-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 6px;
+    background: var(--color-primary);
+    color: var(--color-primary-darker);
+    font-weight: 600;
+    transition: background 0.15s ease;
+}
+
+.produkt-card__search-full-btn:hover {
+    background: var(--color-primary-light);
+}
+
+.produkt-card__search-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 15%;
+    border: none;
+    background: var(--color-primary);
+    color: var(--color-primary-darker);
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.produkt-card__search-btn:hover {
+    background: var(--color-primary-light);
+    transform: scale(1.05);
+}
+
+.modal-body .btn-outline-info {
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.modal-body .btn-outline-info:hover {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary-light);
+    color: var(--color-primary-darker);
+}
+
+.modal-body .btn-outline-warning {
+    color: var(--color-warning);
+    border-color: var(--color-warning);
+}
+.modal-body .btn-outline-warning:hover {
+    background: var(--color-warning);
+    border-color: var(--color-warning);
+    color: var(--color-primary-darker);
 }

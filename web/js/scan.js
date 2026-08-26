@@ -1,4 +1,5 @@
 let aktuelleProduktId = null;
+let html5QrCode = null;
 
 document.addEventListener('DOMContentLoaded', function () {
   const barcodeInput = document.getElementById('barcodeInput');
@@ -10,7 +11,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-
+  const scanModal = document.getElementById('scanModal');
+  if (scanModal) {
+    scanModal.addEventListener('hidden.bs.modal', resetScanModal);
+  }
 });
 
 function barcodeLookup(code) {
@@ -22,10 +26,13 @@ function barcodeLookup(code) {
         document.getElementById('produktName').innerText = data.name;
         document.getElementById('produktQuantitaet').innerText = data.quantitaet;
         document.getElementById('deltaInput').value = 0;
-
         document.getElementById('scanStep').style.display = 'none';
         document.getElementById('fehlerStep').style.display = 'none';
         document.getElementById('produktStep').style.display = 'block';
+
+        document.getElementById('produktCrudButtons').innerHTML =
+          '<a href="/produkt/view?id=' + data.id + '" class="btn btn-sm btn-outline-info flex-fill">Details</a>' +
+          (window.istAdmin ? '<a href="/produkt/update?id=' + data.id + '" class="btn btn-sm btn-outline-warning flex-fill">Bearbeiten</a>' : '');
       } else {
         document.getElementById('scanStep').style.display = 'none';
         document.getElementById('fehlerStep').style.display = 'block';
@@ -40,7 +47,6 @@ function mengeAnpassen(richtung) {
 
 function buchungAbsenden() {
   const delta = document.getElementById('deltaInput').value;
-
   fetch('/produkt/buchen?id=' + aktuelleProduktId, {
     method: 'POST',
     headers: {
@@ -59,31 +65,31 @@ function buchungAbsenden() {
     });
 }
 
-let html5QrCode = null;
-
 function startScan() {
-  const formatsToSupport = [
-    Html5QrcodeSupportedFormats.QR_CODE,
-    Html5QrcodeSupportedFormats.EAN_13,
-    Html5QrcodeSupportedFormats.EAN_8,
-    Html5QrcodeSupportedFormats.CODE_128,
-    Html5QrcodeSupportedFormats.CODE_39,
-    Html5QrcodeSupportedFormats.UPC_A,
-    Html5QrcodeSupportedFormats.UPC_E,
-    Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION,
-  ];
+  html5QrCode = new Html5Qrcode("reader", {
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION,
+    ]
+  });
 
-  html5QrCode = new Html5Qrcode("reader");
   html5QrCode.start(
-    {facingMode: "environment"},
+    { facingMode: "environment" },
     {
       fps: 20,
-      qrbox: {width: 300, height: 150},
+      qrbox: { width: 300, height: 150 },
       aspectRatio: 1.7777778,
+      disableFlip: true,
       videoConstraints: {
         facingMode: "environment",
-        width: {ideal: 1920},
-        height: {ideal: 1080},
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
       },
     },
     (decodedText) => {
@@ -94,14 +100,6 @@ function startScan() {
     console.error("Kamera konnte nicht gestartet werden:", err);
   });
 }
-document.addEventListener('DOMContentLoaded', function () {
-  const scanModal = document.getElementById('scanModal');
-  if (scanModal) {
-    scanModal.addEventListener('hidden.bs.modal', resetScanModal);
-  }
-
-  // dein bestehender barcodeInput-Listener bleibt hier
-});
 
 function resetScanModal() {
   aktuelleProduktId = null;
@@ -115,7 +113,7 @@ function resetScanModal() {
   document.getElementById('produktStep').style.display = 'none';
   document.getElementById('fehlerStep').style.display = 'none';
 
-  if (html5QrCode) {
+  if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
     html5QrCode.stop().catch(() => {});
   }
 }

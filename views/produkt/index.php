@@ -14,6 +14,9 @@ use yii\widgets\Pjax;
 $this->title = Yii::t('app', 'Produkts');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+<head>
+    <?php $this->registerJs('window.istAdmin = ' . (Yii::$app->user->identity->rolle === 'admin' ? 'true' : 'false') . ';', \yii\web\View::POS_HEAD); ?>
+</head>
 <div class="produkt-index">
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -102,5 +105,55 @@ $this->params['breadcrumbs'][] = $this->title;
     <?= yii\widgets\LinkPager::widget([
         'pagination' => $dataProvider->getPagination(),
     ]) ?>
+
+    <div class="modal fade" id="scanModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Barcode scannen</h5>
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <button type="button" class="produkt-card__search-btn" onclick="startScan()" title="Kamera-Scan">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4z"/>
+                                <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5m0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+                            </svg>
+                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="scanStep">
+                        <div id="reader" style="width: 100%;"></div>
+                        <input type="text" id="barcodeInput" class="form-control" placeholder="Barcode scannen oder eingeben" autofocus>
+                        <button type="button" id="searchButton" class="produkt-card__search-full-btn mt-2" onclick="barcodeLookup(document.getElementById('barcodeInput').value)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                            </svg>
+                            Suchen
+                        </button>
+                    </div>
+
+                    <div id="produktStep" style="display:none;">
+                        <h4 id="produktName"></h4>
+                        <p>Aktueller Bestand: <span id="produktQuantitaet"></span></p>
+
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <button type="button" class="btn btn-outline-secondary" onclick="mengeAnpassen(-1)">−</button>
+                            <input type="number" id="deltaInput" class="form-control text-center" value="0">
+                            <button type="button" class="btn btn-outline-secondary" onclick="mengeAnpassen(1)">+</button>
+                        </div>
+
+                        <button type="button" class="btn btn-primary mb-3 w-100" onclick="buchungAbsenden()">Buchen</button>
+
+                        <div id="produktCrudButtons" class="d-flex gap-2"></div>
+                    </div>
+
+                    <div id="fehlerStep" style="display:none;">
+                        <p class="text-danger">Barcode nicht gefunden.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>
