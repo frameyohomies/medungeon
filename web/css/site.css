@@ -557,8 +557,8 @@ a.desc:after {
 }
 
 .produkt-card__footer .btn-outline-info {
-    color: var(--color-primary-light);
-    border-color: var(--color-primary-light);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
 }
 .produkt-card__footer .btn-outline-info:hover {
     background: var(--color-primary-light);
