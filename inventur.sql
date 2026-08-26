@@ -10,7 +10,7 @@ CREATE TABLE benutzer (
     firstname VARCHAR(150) NOT NULL,
     lastname VARCHAR(150) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    rolle ENUM('admin', 'ordihilfe') NOT NULL DEFAULT 'ordihilfe',
+    rolle ENUM('admin', 'user') NOT NULL DEFAULT 'user',
     aktiv TINYINT(1) NOT NULL DEFAULT 1,
     erstellt_am DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

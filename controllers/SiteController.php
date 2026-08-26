@@ -170,11 +170,30 @@ class SiteController extends Controller
             $benutzer->firstname = $attributes['givenName'] ?? '';
             $benutzer->lastname = $attributes['surname'] ?? '';
             $benutzer->email = $attributes['mail'] ?? $attributes['userPrincipalName'];
-            $benutzer->rolle = 'ordihilfe';
+            $benutzer->rolle = 'user';
             $benutzer->save(false);
         }
 
+        $istAdmin = $this->pruefeGlobalAdmin($client, $attributes['id']);
+        $benutzer->rolle = $istAdmin ? 'admin' : 'user';
+        $benutzer->save(false);
+
         Yii::$app->user->login($benutzer);
         return $this->goHome();
+    }
+
+    private function pruefeGlobalAdmin($client, $userId)
+    {
+        $response = $client->api("users/{$userId}/memberOf", 'GET');
+
+        foreach ($response['value'] ?? [] as $eintrag) {
+            if (
+                ($eintrag['@odata.type'] ?? '') === '#microsoft.graph.directoryRole'
+                && ($eintrag['roleTemplateId'] ?? '') === '62e90394-69f5-4237-9190-012177145e10'
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -13,7 +13,7 @@ $this->title = 'Login';
         <div class="position-relative py-4">
             <h1 class="display-5 fw-bold mb-3">medungeon</h1>
             <p class="lead opacity-75 mb-4">
-                Inventurverwaltung fürs Lager – schnell, nachvollziehbar, überall am Handy.
+                Inventurverwaltung fürs Lager – schnell, nachvollziehbar, überall.
             </p>
 
             <?php if (Yii::$app->user->isGuest): ?>
@@ -23,6 +23,9 @@ $this->title = 'Login';
                 </a>
             <?php else: ?>
                 <p class="mb-3">Hallo, <?= Html::encode(Yii::$app->user->identity->firstname) ?></p>
+                <?php if (Yii::$app->user->identity->rolle === 'admin'): ?>
+                    <span class="badge bg-warning text-dark">Admin</span>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
