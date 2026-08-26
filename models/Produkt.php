@@ -74,6 +74,11 @@ class Produkt extends \yii\db\ActiveRecord
         return $this->hasMany(BestandBewegung::class, ['produkt_id' => 'id']);
     }
 
+    public function getFachbereich()
+    {
+        return $this->hasOne(Fachbereich::class, ['id' => 'fachbereich_id']);
+    }
+
     /**
      * {@inheritdoc}
      * @return ProduktQuery the active query used by this AR class.
