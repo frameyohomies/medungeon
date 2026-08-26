@@ -36,6 +36,9 @@ $items = [
 ];
 
 ?>
+
+<?php if (!Yii::$app->user->isGuest): ?>
+
 <header id="header">
     <?php NavBar::begin(
         [
@@ -52,11 +55,7 @@ $items = [
         ],
     ) ?>
 
-    <?php if (Yii::$app->user->isGuest): ?>
-        <a href="<?= yii\helpers\Url::to(['site/auth', 'authclient' => 'azure']) ?>">
-            <img src="<?= Yii::getAlias('@web/images/ms-symbollockup_signin_light.svg') ?>" alt="Sign in with Microsoft" height="35">
-        </a>
-    <?php endif; ?>
+
 
     <?= Html::button(
         '&#127769;',
@@ -68,3 +67,5 @@ $items = [
     ) ?>
     <?php NavBar::end() ?>
 </header>
+
+<?php endif; ?>
