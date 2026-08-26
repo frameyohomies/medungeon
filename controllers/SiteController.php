@@ -15,6 +15,8 @@ use yii\mail\MailerInterface;
 use yii\web\Controller;
 use yii\web\ErrorAction;
 use yii\web\Response;
+use yii\authclient\clients\Azure;
+use app\models\User;
 
 class SiteController extends Controller
 {
@@ -67,6 +69,10 @@ class SiteController extends Controller
                 'class' => CaptchaAction::class,
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
                 'transparent' => true,
+            ],
+            'auth' => [
+                'class' => \yii\authclient\AuthAction::class,
+                'successCallback' => [$this, 'onAuthSuccess'],
             ],
         ];
     }
@@ -151,5 +157,24 @@ class SiteController extends Controller
     public function actionAbout(): string
     {
         return $this->render('about');
+    }
+
+    public function onAuthSuccess($client)
+    {
+        $attributes = $client->getUserAttributes();
+
+        $benutzer = User::findOne(['entra_oid' => $attributes['id']]);
+        if (!$benutzer) {
+            $benutzer = new User();
+            $benutzer->entra_oid = $attributes['id'];
+            $benutzer->firstname = $attributes['givenName'] ?? '';
+            $benutzer->lastname = $attributes['surname'] ?? '';
+            $benutzer->email = $attributes['mail'] ?? $attributes['userPrincipalName'];
+            $benutzer->rolle = 'ordihilfe';
+            $benutzer->save(false);
+        }
+
+        Yii::$app->user->login($benutzer);
+        return $this->goHome();
     }
 }

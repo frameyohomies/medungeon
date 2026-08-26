@@ -457,3 +457,8 @@ a.desc:after {
 [data-bs-theme="dark"] .extension-card:hover {
     box-shadow: 0 0 0 1px var(--bs-border-color), 0 8px 24px rgba(0, 0, 0, .4) !important;
 }
+
+.hero-banner-img {
+    width: 100%;
+    height: auto;
+}

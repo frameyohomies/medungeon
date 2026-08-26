@@ -10,24 +10,22 @@ use yii\helpers\Html;
 
 $items = [
     [
-        'label' => 'Home',
-        'url' => ['/site/index'],
-    ],
-    [
         'label' => 'User',
         'url' => ['/benutzer/index'],
+        'visible' => !Yii::$app->user->isGuest,
     ],
     [
         'label' => 'Bestand',
         'url' => ['/produkt/index'],
+        'visible' => !Yii::$app->user->isGuest,
     ],
     [
         'label' => 'Verlauf',
         'url' => ['/bestand-bewegung/index'],
-        'visible' => Yii::$app->user->isGuest,
+        'visible' => !Yii::$app->user->isGuest,
     ],
     [
-        'label' => 'Logout (' . Html::encode(Yii::$app->user->identity?->username ?? '') . ')',
+        'label' => 'Logout (' . Html::encode(trim((Yii::$app->user->identity?->firstname ?? '') . ' ' . (Yii::$app->user->identity?->lastname ?? ''))) . ')',
         'url' => ['/site/logout'],
         'linkOptions' => [
             'data-method' => 'post',
@@ -38,6 +36,9 @@ $items = [
 ];
 
 ?>
+
+<?php if (!Yii::$app->user->isGuest): ?>
+
 <header id="header">
     <?php NavBar::begin(
         [
@@ -53,6 +54,9 @@ $items = [
             'items' => $items,
         ],
     ) ?>
+
+
+
     <?= Html::button(
         '&#127769;',
         [
@@ -63,3 +67,5 @@ $items = [
     ) ?>
     <?php NavBar::end() ?>
 </header>
+
+<?php endif; ?>
