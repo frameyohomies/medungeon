@@ -22,8 +22,7 @@ $this->title = 'Login';
                     <img src="<?= Yii::getAlias('@web/images/ms-symbollockup_signin_light.svg') ?>" class="hero-banner-img" alt="Sign in with Microsoft" height="41">
                 </a>
             <?php else: ?>
-                <p class="mb-3">Eingeloggt als <?= Html::encode(Yii::$app->user->identity->firstname) ?></p>
-                <?= Html::a('Zum Bestand', ['produkt/index'], ['class' => 'btn btn-light btn-lg fw-semibold px-4']) ?>
+                <p class="mb-3">Hallo, <?= Html::encode(Yii::$app->user->identity->firstname) ?></p>
             <?php endif; ?>
         </div>
     </div>
