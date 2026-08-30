@@ -22,6 +22,7 @@ class ProduktSearch extends Produkt
         ];
     }
 
+    public $q;
     /**
      * {@inheritdoc}
      */
@@ -69,6 +70,29 @@ class ProduktSearch extends Produkt
         $query->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'barcode', $this->barcode])
             ->andFilterWhere(['like', 'standort', $this->standort]);
+
+        return $dataProvider;
+
+        $query = Produkt::find()->joinWith('fachbereich');
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        $this->load($params);
+
+        if (!$this->validate()) {
+            return $dataProvider;
+        }
+
+        if (!empty($this->q)) {
+            $query->andFilterWhere(['or',
+                ['like', 'produkt.name', $this->q],
+                ['like', 'produkt.barcode', $this->q],
+                ['like', 'produkt.standort', $this->q],
+                ['like', 'fachbereich.bezeichnung', $this->q],
+            ]);
+        }
 
         return $dataProvider;
     }

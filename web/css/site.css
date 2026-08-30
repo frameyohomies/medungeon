@@ -475,10 +475,6 @@ a.desc:after {
     box-shadow: 0 0 0 1px var(--bs-border-color), 0 8px 24px rgba(0, 0, 0, .4) !important;
 }
 
-.hero-banner-img {
-    width: 100%;
-    height: auto;
-}
 
 /* produkt cards */
 .produkt-card {
@@ -495,6 +491,7 @@ a.desc:after {
     transform: translateY(-3px);
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
     border-color: var(--fach-color, var(--color-primary));
+    cursor: pointer  !important;
 }
 
 .produkt-card__accent {
@@ -612,6 +609,7 @@ a.desc:after {
     background: var(--color-primary-light);
     border-color: var(--color-primary-light);
     color: var(--color-primary-darker);
+    cursor: pointer  !important;
 }
 
 .produkt-card__footer .btn-outline-warning {
