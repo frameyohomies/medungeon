@@ -16,7 +16,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'lastname')->textInput(['maxlength' => true]) ?>
 
-    <?= $form->field($model, 'rolle')->dropDownList([ 'admin' => 'Admin', 'ordihilfe' => 'Mitarbeiter', ], ['prompt' => '']) ?>
+    <?= $form->field($model, 'rolle')->dropDownList([ 'admin' => 'Admin', 'user' => 'Mitarbeiter', ], ['prompt' => '']) ?>
 
     <?= $form->field($model, 'aktiv')->checkbox() ?>
 

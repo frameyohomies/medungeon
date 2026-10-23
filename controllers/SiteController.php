@@ -6,16 +6,16 @@ namespace app\controllers;
 
 use Yii;
 use app\models\ContactForm;
-use app\models\LoginForm;
 use yii\captcha\CaptchaAction;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\base\Security;
 use yii\mail\MailerInterface;
 use yii\web\Controller;
 use yii\web\ErrorAction;
 use yii\web\Response;
-use yii\authclient\clients\Azure;
+use yii\authclient\ClientInterface;
+use yii\web\ForbiddenHttpException;
+use app\models\Benutzer;
 use app\models\User;
 
 class SiteController extends Controller
@@ -24,7 +24,6 @@ class SiteController extends Controller
         $id,
         $module,
         private readonly MailerInterface $mailer,
-        private readonly Security $security,
         $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -88,9 +87,7 @@ class SiteController extends Controller
     }
 
     /**
-     * Login action.
-     *
-     * @return Response|string
+     * Login page: only offers "Sign in with Microsoft" (SSO via Entra ID).
      */
     public function actionLogin(): Response|string
     {
@@ -98,15 +95,7 @@ class SiteController extends Controller
             return $this->goHome();
         }
 
-        $model = new LoginForm($this->security);
-
-        if ($model->load($this->request->post()) && $model->login()) {
-            return $this->goBack();
-        }
-
-        $model->password = '';
-
-        return $this->render('login', ['model' => $model]);
+        return $this->render('login');
     }
 
     /**
@@ -159,41 +148,68 @@ class SiteController extends Controller
         return $this->render('about');
     }
 
-    public function onAuthSuccess($client)
+    public function onAuthSuccess(ClientInterface $client): Response
     {
         $attributes = $client->getUserAttributes();
+        $oid = $attributes['id'] ?? null;
 
-        $benutzer = User::findOne(['entra_oid' => $attributes['id']]);
-        if (!$benutzer) {
-            $benutzer = new User();
-            $benutzer->entra_oid = $attributes['id'];
-            $benutzer->firstname = $attributes['givenName'] ?? '';
-            $benutzer->lastname = $attributes['surname'] ?? '';
-            $benutzer->email = $attributes['mail'] ?? $attributes['userPrincipalName'];
-            $benutzer->rolle = 'user';
-            $benutzer->save(false);
+        if (empty($oid)) {
+            throw new ForbiddenHttpException('Microsoft-Anmeldung lieferte keine Benutzer-ID.');
         }
 
-        $istAdmin = $this->pruefeGlobalAdmin($client, $attributes['id']);
-        $benutzer->rolle = $istAdmin ? 'admin' : 'user';
-        $benutzer->save(false);
+        $benutzer = User::findOne(['entra_oid' => $oid]);
+        if (!$benutzer) {
+            $benutzer = new User();
+            $benutzer->entra_oid = $oid;
+            $benutzer->aktiv = 1;
+        }
 
+        if ((int) $benutzer->aktiv !== 1) {
+            Yii::warning("Login abgelehnt: Benutzer {$oid} ist deaktiviert.", __METHOD__);
+            throw new ForbiddenHttpException('Ihr Zugang ist deaktiviert.');
+        }
+
+        // keep profile data in sync with the tenant on every login
+        $benutzer->firstname = $attributes['givenName'] ?? $benutzer->firstname ?? '';
+        $benutzer->lastname = $attributes['surname'] ?? $benutzer->lastname ?? '';
+        $benutzer->email = $attributes['mail'] ?? $attributes['userPrincipalName'] ?? $benutzer->email ?? '';
+        $benutzer->rolle = $this->pruefeGlobalAdmin($client, $oid) ? Benutzer::ROLLE_ADMIN : Benutzer::ROLLE_USER;
+
+        if (!$benutzer->save()) {
+            Yii::error(['Benutzer konnte nicht gespeichert werden', $benutzer->errors], __METHOD__);
+            throw new ForbiddenHttpException('Anmeldung fehlgeschlagen.');
+        }
+
+        // session only (no remember-me cookie); login() also regenerates the session id
         Yii::$app->user->login($benutzer);
+
         return $this->goHome();
     }
 
-    private function pruefeGlobalAdmin($client, $userId)
+    /**
+     * True if the user holds the Entra "Global Administrator" directory role.
+     * Fails closed (non-admin) if Graph cannot be queried.
+     */
+    private function pruefeGlobalAdmin(ClientInterface $client, string $userId): bool
     {
-        $response = $client->api("users/{$userId}/memberOf", 'GET');
+        $globalAdminTemplateId = '62e90394-69f5-4237-9190-012177145e10';
+        $url = 'users/' . rawurlencode($userId) . '/memberOf/microsoft.graph.directoryRole';
 
-        foreach ($response['value'] ?? [] as $eintrag) {
-            if (
-                ($eintrag['@odata.type'] ?? '') === '#microsoft.graph.directoryRole'
-                && ($eintrag['roleTemplateId'] ?? '') === '62e90394-69f5-4237-9190-012177145e10'
-            ) {
-                return true;
+        try {
+            while ($url) {
+                $response = $client->api($url, 'GET');
+                foreach ($response['value'] ?? [] as $eintrag) {
+                    if (($eintrag['roleTemplateId'] ?? '') === $globalAdminTemplateId) {
+                        return true;
+                    }
+                }
+                $url = $response['@odata.nextLink'] ?? null;
             }
+        } catch (\Throwable $e) {
+            Yii::error($e, __METHOD__);
         }
+
         return false;
     }
+
 }

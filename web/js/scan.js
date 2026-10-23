@@ -60,7 +60,7 @@ function buchungAbsenden() {
       if (data.success) {
         location.reload();
       } else {
-        alert('Buchung fehlgeschlagen.');
+        alert(data.message || 'Buchung fehlgeschlagen.');
       }
     });
 }

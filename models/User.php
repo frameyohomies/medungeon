@@ -55,6 +55,7 @@ class User extends Benutzer implements IdentityInterface
      */
     public function validateAuthKey($authKey): bool
     {
-        return true;
+        // No auth keys: cookie-based auto-login is disabled (see config/web.php).
+        return false;
     }
 }

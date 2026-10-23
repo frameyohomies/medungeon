@@ -88,11 +88,41 @@ class Produkt extends \yii\db\ActiveRecord
         return new ProduktQuery(get_called_class());
     }
 
-    public function buche($delta, $benutzerId)
+    /**
+     * Books a stock movement and writes the history entry in one transaction.
+     * The product row is locked (SELECT ... FOR UPDATE) so concurrent bookings
+     * always calculate from the current stock. Failure reason: getFirstError('quantitaet').
+     */
+    public function buche(int $delta, int $benutzerId): bool
     {
-        $transaction = Yii::$app->db->beginTransaction();
+        if ($delta === 0) {
+            $this->addError('quantitaet', 'Die Menge darf nicht 0 sein.');
+            return false;
+        }
+
+        $db = static::getDb();
+        $transaction = $db->beginTransaction();
         try {
-            $neuerBestand = $this->quantitaet + $delta;
+            $aktuell = $db->createCommand(
+                'SELECT [[quantitaet]] FROM {{%produkt}} WHERE [[id]] = :id FOR UPDATE',
+                [':id' => $this->id]
+            )->queryScalar();
+
+            if ($aktuell === false) {
+                $transaction->rollBack();
+                $this->addError('quantitaet', 'Produkt nicht gefunden.');
+                return false;
+            }
+
+            $aktuell = (int) $aktuell;
+            $this->quantitaet = $aktuell;
+            $neuerBestand = $aktuell + $delta;
+
+            if ($neuerBestand < 0) {
+                $transaction->rollBack();
+                $this->addError('quantitaet', "Nicht genug Bestand (aktuell {$aktuell}).");
+                return false;
+            }
 
             $bewegung = new BestandBewegung();
             $bewegung->produkt_id = $this->id;
@@ -100,23 +130,21 @@ class Produkt extends \yii\db\ActiveRecord
             $bewegung->delta = $delta;
             $bewegung->bestand_nach = $neuerBestand;
 
-            if(!$bewegung->save()) {
+            if (!$bewegung->save()) {
                 $transaction->rollBack();
+                $this->addError('quantitaet', 'Buchung konnte nicht gespeichert werden.');
                 return false;
             }
 
-            $this->quantitaet = $neuerBestand;
-            if(!$this->save()) {
-                $transaction->rollBack();
-                return false;
-            }
+            $this->updateAttributes(['quantitaet' => $neuerBestand]);
 
             $transaction->commit();
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $transaction->rollBack();
+            Yii::error($e, __METHOD__);
+            $this->addError('quantitaet', 'Buchung fehlgeschlagen.');
             return false;
         }
     }
-
 }

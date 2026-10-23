@@ -8,6 +8,7 @@ use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 
 /**
  * ProduktController implements the CRUD actions for Produkt model.
@@ -26,6 +27,25 @@ class ProduktController extends Controller
                     'class' => VerbFilter::className(),
                     'actions' => [
                         'delete' => ['POST'],
+                        'buchen' => ['POST'],
+                    ],
+                ],
+                'access' => [
+                    'class' => AccessControl::class,
+                    'rules' => [
+                        // product master data: admins only
+                        [
+                            'actions' => ['create', 'update', 'delete'],
+                            'allow' => true,
+                            'roles' => ['@'],
+                            'matchCallback' => fn () => Yii::$app->user->identity->rolle === 'admin',
+                        ],
+                        // viewing, scanning and booking: any signed-in user
+                        [
+                            'actions' => ['index', 'view', 'lookup', 'buchen'],
+                            'allow' => true,
+                            'roles' => ['@'],
+                        ],
                     ],
                 ],
             ]
@@ -123,13 +143,14 @@ class ProduktController extends Controller
 
         $produkt = $this->findModel($id);
         $delta = (int) Yii::$app->request->post('delta');
-        $benutzerId = 2; // Platzhalter bis Login steht
+        $benutzerId = (int) Yii::$app->user->id;
 
         $erfolg = $produkt->buche($delta, $benutzerId);
 
         return [
             'success' => $erfolg,
             'neuerBestand' => $produkt->quantitaet,
+            'message' => $erfolg ? null : $produkt->getFirstError('quantitaet'),
         ];
     }
 
