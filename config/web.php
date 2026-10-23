@@ -23,8 +23,8 @@ $config = [
     ],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => 'ZYtQvmRh_vF4L9PG9UICCMsXekB887Xk',
+            // Set in config/params-local.php (not versioned). Yii refuses to start if empty.
+            'cookieValidationKey' => $params['cookieValidationKey'] ?? '',
         ],
         'cache' => [
             'class' => \yii\caching\FileCache::class,
@@ -69,8 +69,8 @@ if (YII_ENV_DEV) {
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
-        // uncomment the following to add your IP if you are not connecting from localhost.
-        'allowedIPs' => ['*'],
+        // localhost + Docker/DDEV networks only
+        'allowedIPs' => ['127.0.0.1', '::1', '172.*'],
     ];
 }
 

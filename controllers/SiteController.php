@@ -6,11 +6,9 @@ namespace app\controllers;
 
 use Yii;
 use app\models\ContactForm;
-use app\models\LoginForm;
 use yii\captcha\CaptchaAction;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
-use yii\base\Security;
 use yii\mail\MailerInterface;
 use yii\web\Controller;
 use yii\web\ErrorAction;
@@ -22,7 +20,6 @@ class SiteController extends Controller
         $id,
         $module,
         private readonly MailerInterface $mailer,
-        private readonly Security $security,
         $config = [],
     ) {
         parent::__construct($id, $module, $config);
@@ -79,28 +76,6 @@ class SiteController extends Controller
     public function actionIndex(): string
     {
         return $this->render('index');
-    }
-
-    /**
-     * Login action.
-     *
-     * @return Response|string
-     */
-    public function actionLogin(): Response|string
-    {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
-
-        $model = new LoginForm($this->security);
-
-        if ($model->load($this->request->post()) && $model->login()) {
-            return $this->goBack();
-        }
-
-        $model->password = '';
-
-        return $this->render('login', ['model' => $model]);
     }
 
     /**

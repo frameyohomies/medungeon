@@ -24,7 +24,6 @@ $items = [
     [
         'label' => 'Verlauf',
         'url' => ['/bestand-bewegung/index'],
-        'visible' => Yii::$app->user->isGuest,
     ],
     [
         'label' => 'Logout (' . Html::encode(Yii::$app->user->identity?->username ?? '') . ')',

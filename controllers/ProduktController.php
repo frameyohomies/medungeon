@@ -26,6 +26,7 @@ class ProduktController extends Controller
                     'class' => VerbFilter::className(),
                     'actions' => [
                         'delete' => ['POST'],
+                        'buchen' => ['POST'],
                     ],
                 ],
             ]
@@ -130,6 +131,7 @@ class ProduktController extends Controller
         return [
             'success' => $erfolg,
             'neuerBestand' => $produkt->quantitaet,
+            'message' => $erfolg ? null : $produkt->getFirstError('quantitaet'),
         ];
     }
 
