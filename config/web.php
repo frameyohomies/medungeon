@@ -52,6 +52,16 @@ $config = [
                     'class' => \yii\log\FileTarget::class,
                     'levels' => ['error', 'warning'],
                 ],
+                // who exported what and when (CSV exports of the history)
+                [
+                    'class' => \yii\log\FileTarget::class,
+                    'categories' => ['audit'],
+                    'levels' => ['info'],
+                    'logVars' => [],
+                    'logFile' => '@runtime/logs/audit.log',
+                    'maxFileSize' => 10240,
+                    'maxLogFiles' => 20,
+                ],
             ],
         ],
         'db' => $db,

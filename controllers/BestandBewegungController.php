@@ -5,7 +5,9 @@ namespace app\controllers;
 use Yii;
 use app\models\BestandBewegung;
 use app\models\BestandBewegungSearch;
+use app\components\VerlaufCsvExport;
 use yii\web\Controller;
+use yii\web\Response;
 use yii\web\NotFoundHttpException;
 use yii\filters\AccessControl;
 
@@ -69,42 +71,58 @@ class BestandBewegungController extends Controller
     }
 
     /**
-     * Exports the (filtered) history as CSV for audits. Same filters as the index page.
+     * Exports the filtered history as CSV (same filters as the list, all pages).
+     * Every export is written to the audit log (runtime/logs/audit.log).
      */
-    public function actionExport(): \yii\web\Response
+    public function actionExport(): Response
     {
         $searchModel = new BestandBewegungSearch();
         $dataProvider = $searchModel->search($this->request->queryParams, null, false);
 
-        $fh = fopen('php://temp', 'r+');
-        fwrite($fh, "\xEF\xBB\xBF"); // UTF-8 BOM so Excel shows umlauts correctly
-        fputcsv($fh, ['ID', 'Zeitpunkt', 'Produkt', 'Barcode', 'Menge', 'Bestand danach', 'Benutzer', 'E-Mail'], ';');
-
-        foreach ($dataProvider->query->batch(500) as $rows) {
-            foreach ($rows as $m) {
-                /** @var BestandBewegung $m */
-                fputcsv($fh, [
-                    $m->id,
-                    $m->gebucht_am,
-                    $m->produkt->name ?? '',
-                    $m->produkt->barcode ?? '',
-                    $m->delta,
-                    $m->bestand_nach,
-                    $m->benutzer ? trim($m->benutzer->firstname . ' ' . $m->benutzer->lastname) : '',
-                    $m->benutzer->email ?? '',
-                ], ';');
-            }
+        if ($searchModel->hasErrors()) {
+            Yii::$app->session->setFlash('error', 'Export nicht möglich: ' . implode(' ', $searchModel->getErrorSummary(true)));
+            return $this->redirect(array_merge(['index'], $this->request->queryParams));
         }
 
-        rewind($fh);
-        $csv = stream_get_contents($fh);
-        fclose($fh);
+        $export = VerlaufCsvExport::write($dataProvider->query);
 
-        return Yii::$app->response->sendContentAsFile(
-            $csv,
-            'verlauf_' . date('Y-m-d_His') . '.csv',
+        $user = Yii::$app->user->identity;
+        Yii::info([
+            'event' => 'verlauf_export',
+            'benutzer_id' => $user?->id,
+            'email' => $user?->email,
+            'rows' => $export['rows'],
+            'filter' => array_filter([
+                'produkt_id' => $searchModel->produkt_id,
+                'benutzer_id' => $searchModel->benutzer_id,
+                'produktName' => $searchModel->produktName,
+                'benutzerName' => $searchModel->benutzerName,
+                'von' => $searchModel->von,
+                'bis' => $searchModel->bis,
+            ], static fn ($v) => $v !== null && $v !== ''),
+            'ip' => $this->request->userIP,
+        ], 'audit');
+
+        return Yii::$app->response->sendStreamAsFile(
+            $export['stream'],
+            $this->exportDateiname($searchModel),
             ['mimeType' => 'text/csv; charset=UTF-8']
         );
+    }
+
+    private function exportDateiname(BestandBewegungSearch $s): string
+    {
+        $teile = ['verlauf'];
+        if ($s->von || $s->bis) {
+            $teile[] = ($s->von ?: 'anfang') . '_bis_' . ($s->bis ?: date('Y-m-d'));
+        } else {
+            $teile[] = 'stand_' . date('Y-m-d');
+        }
+        if ($s->produkt_id || $s->benutzer_id || $s->produktName || $s->benutzerName) {
+            $teile[] = 'gefiltert';
+        }
+
+        return implode('_', $teile) . '.csv';
     }
 
     /**
