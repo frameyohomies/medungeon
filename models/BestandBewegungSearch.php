@@ -54,7 +54,9 @@ class BestandBewegungSearch extends BestandBewegung
     {
         $query = BestandBewegung::find()
             ->alias('bb')
-            ->joinWith(['produkt p', 'benutzer b']);
+            // join for filtering/sorting only; relations are eager-loaded separately
+            ->joinWith(['produkt p', 'benutzer b'], false)
+            ->with(['produkt', 'benutzer']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

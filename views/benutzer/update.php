@@ -5,19 +5,18 @@ use yii\helpers\Html;
 /** @var yii\web\View $this */
 /** @var app\models\Benutzer $model */
 
-$this->title = Yii::t('app', 'Update Benutzer: {firstname} {lastname}', [
-    'firstname' => $model->firstname,
-]);
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Benutzer'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->firstname . ' ' . $model->lastname, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = Yii::t('app', 'Update');
+$name = trim($model->firstname . ' ' . $model->lastname);
+$this->title = 'Bearbeiten: ' . $name;
+$this->params['breadcrumbs'][] = ['label' => 'Benutzer', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $name, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = 'Bearbeiten';
 ?>
-<div class="benutzer-update">
+<div class="benutzer-update" style="max-width: 560px;">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1 class="page-head__title mb-3"><?= Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form', [
-        'model' => $model,
-    ]) ?>
+    <div class="surface p-3">
+        <?= $this->render('_form', ['model' => $model]) ?>
+    </div>
 
 </div>
