@@ -17,8 +17,12 @@ class ProduktSearch extends Produkt
     /** Free-text search over name, barcode, location and department */
     public $q;
 
-    /** Admins only: also show deactivated products */
-    public $inaktiv;
+    public const FILTER_ALLE = 'alle';
+    public const FILTER_KNAPP = 'knapp';
+    public const FILTER_INAKTIV = 'inaktiv';
+
+    /** alle = active products, knapp = at/below minimum stock, inaktiv = deactivated (admins only) */
+    public $filter = self::FILTER_ALLE;
 
     public function rules()
     {
@@ -26,7 +30,7 @@ class ProduktSearch extends Produkt
             [['id', 'quantitaet', 'mindestbestand'], 'integer'],
             [['name', 'barcode', 'standort', 'erstellt_am', 'aktualisiert_am'], 'safe'],
             [['q'], 'string', 'max' => 150],
-            [['inaktiv'], 'boolean'],
+            [['filter'], 'in', 'range' => [self::FILTER_ALLE, self::FILTER_KNAPP, self::FILTER_INAKTIV]],
         ];
     }
 
@@ -62,13 +66,19 @@ class ProduktSearch extends Produkt
         $this->load($params, $formName);
 
         if (!$this->validate()) {
+            $this->filter = self::FILTER_ALLE;
             $query->where('0=1');
             return $dataProvider;
         }
 
         $istAdmin = (bool) \Yii::$app->user->identity?->isRolleAdmin();
-        if (!($istAdmin && $this->inaktiv)) {
+        if ($this->filter === self::FILTER_INAKTIV && $istAdmin) {
+            $query->andWhere(['produkt.aktiv' => 0]);
+        } else {
             $query->andWhere(['produkt.aktiv' => 1]);
+            if ($this->filter === self::FILTER_KNAPP) {
+                $query->andWhere('produkt.quantitaet <= produkt.mindestbestand');
+            }
         }
 
         $query->andFilterWhere([
@@ -91,5 +101,24 @@ class ProduktSearch extends Produkt
         }
 
         return $dataProvider;
+    }
+
+    /**
+     * Counts for the page header (active products only).
+     *
+     * @return array{aktiv:int, knapp:int, inaktiv:int}
+     */
+    public static function zaehler(): array
+    {
+        $row = Produkt::find()
+            ->select([
+                'aktiv' => 'COALESCE(SUM(aktiv = 1), 0)',
+                'knapp' => 'COALESCE(SUM(aktiv = 1 AND quantitaet <= mindestbestand), 0)',
+                'inaktiv' => 'COALESCE(SUM(aktiv = 0), 0)',
+            ])
+            ->asArray()
+            ->one();
+
+        return array_map('intval', $row ?: ['aktiv' => 0, 'knapp' => 0, 'inaktiv' => 0]);
     }
 }

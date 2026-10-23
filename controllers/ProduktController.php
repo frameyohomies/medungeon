@@ -163,11 +163,19 @@ class ProduktController extends Controller
         ];
     }
 
-    public function actionLookup($barcode)
+    /**
+     * Finds an active product by barcode (scanner) or id ("Buchen" button on a card).
+     */
+    public function actionLookup($barcode = null, $id = null)
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $produkt = Produkt::findOne(['barcode' => (string) $barcode, 'aktiv' => 1]);
+        $bedingung = $id !== null && $id !== ''
+            ? ['id' => (int) $id]
+            : ['barcode' => (string) $barcode];
+        $produkt = ($barcode === null && ($id === null || $id === ''))
+            ? null
+            : Produkt::findOne($bedingung + ['aktiv' => 1]);
 
         if (!$produkt) {
             return ['success' => false];

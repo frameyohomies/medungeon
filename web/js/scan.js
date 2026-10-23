@@ -18,26 +18,45 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function barcodeLookup(code) {
-  fetch('/produkt/lookup?barcode=' + encodeURIComponent(code))
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        aktuelleProduktId = data.id;
-        document.getElementById('produktName').innerText = data.name;
-        document.getElementById('produktQuantitaet').innerText = data.quantitaet;
-        document.getElementById('deltaInput').value = 0;
-        document.getElementById('scanStep').style.display = 'none';
-        document.getElementById('fehlerStep').style.display = 'none';
-        document.getElementById('produktStep').style.display = 'block';
+  if (!code) {
+    return;
+  }
+  produktLaden('/produkt/lookup?barcode=' + encodeURIComponent(code));
+}
 
-        document.getElementById('produktCrudButtons').innerHTML =
-          '<a href="/produkt/view?id=' + data.id + '" class="btn btn-sm btn-outline-info flex-fill">Details</a>' +
-          (window.istAdmin ? '<a href="/produkt/update?id=' + data.id + '" class="btn btn-sm btn-outline-warning flex-fill">Bearbeiten</a>' : '');
-      } else {
-        document.getElementById('scanStep').style.display = 'none';
-        document.getElementById('fehlerStep').style.display = 'block';
-      }
-    });
+// "Buchen" button on a product card: open the modal with that product preselected
+function buchungOeffnen(id) {
+  const modalEl = document.getElementById('scanModal');
+  bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  produktLaden('/produkt/lookup?id=' + encodeURIComponent(id));
+}
+
+function produktLaden(url) {
+  fetch(url, { headers: { 'Accept': 'application/json' } })
+    .then(response => response.json())
+    .then(zeigeProdukt)
+    .catch(() => zeigeProdukt({ success: false }));
+}
+
+function zeigeProdukt(data) {
+  document.getElementById('scanStep').style.display = 'none';
+
+  if (!data.success) {
+    document.getElementById('produktStep').style.display = 'none';
+    document.getElementById('fehlerStep').style.display = 'block';
+    return;
+  }
+
+  aktuelleProduktId = data.id;
+  document.getElementById('produktName').innerText = data.name;
+  document.getElementById('produktQuantitaet').innerText = data.quantitaet;
+  document.getElementById('deltaInput').value = 0;
+  document.getElementById('fehlerStep').style.display = 'none';
+  document.getElementById('produktStep').style.display = 'block';
+
+  document.getElementById('produktCrudButtons').innerHTML =
+    '<a href="/produkt/view?id=' + data.id + '" class="btn btn-sm btn-outline-info flex-fill">Details</a>' +
+    (window.istAdmin ? '<a href="/produkt/update?id=' + data.id + '" class="btn btn-sm btn-outline-warning flex-fill">Bearbeiten</a>' : '');
 }
 
 function mengeAnpassen(richtung) {
