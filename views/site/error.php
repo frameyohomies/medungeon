@@ -20,12 +20,17 @@ $statusCode = $exception instanceof HttpException ? $exception->statusCode : 500
         <h2 class="display-6 fw-semibold mb-3"><?= Html::encode($message) ?></h2>
 
         <p class="text-body-secondary mb-4">
-            The above error occurred while the Web server was processing your request.
-            Please contact us if you think this is a server error. Thank you.
+            <?php if ($statusCode === 403): ?>
+                Für diese Seite fehlt dir die Berechtigung.
+            <?php elseif ($statusCode === 404): ?>
+                Diese Seite gibt es nicht (mehr).
+            <?php else: ?>
+                Da ist etwas schiefgelaufen. Bitte versuche es erneut oder melde dich bei der IT.
+            <?php endif; ?>
         </p>
 
         <?= Html::a(
-            'Go to Homepage',
+            'Zur Startseite',
             Yii::$app->homeUrl,
             ['class' => 'btn btn-outline-primary btn-lg'],
         ) ?>

@@ -7,7 +7,10 @@ $params = array_merge(
 );
 
 $config = [
-    'id' => 'basic',
+    'id' => 'medino-inventur',
+    'name' => 'medungeon',
+    'language' => 'de-AT',
+    'sourceLanguage' => 'en-US',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'container' => [
@@ -25,6 +28,20 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+        // UI texts are written in German directly; only Yii core messages get translated
+        'i18n' => [
+            'translations' => [
+                'app*' => [
+                    'class' => \yii\i18n\PhpMessageSource::class,
+                    'sourceLanguage' => 'de-AT',
+                    'basePath' => '@app/messages',
+                ],
+            ],
+        ],
+        'formatter' => [
+            'locale' => 'de-AT',
+            'nullDisplay' => '–',
+        ],
         'session' => [
             'cookieParams' => ['httponly' => true, 'secure' => YII_ENV_PROD, 'sameSite' => 'Lax'],
         ],

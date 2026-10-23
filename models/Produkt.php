@@ -14,6 +14,7 @@ use Yii;
  * @property int $quantitaet
  * @property int $mindestbestand
  * @property int $aktiv
+ * @property int|null $fachbereich_id
  * @property string $erstellt_am
  * @property string $aktualisiert_am
  *
@@ -37,16 +38,20 @@ class Produkt extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['barcode', 'standort'], 'default', 'value' => null],
+            [['barcode', 'standort', 'fachbereich_id'], 'default', 'value' => null],
             [['mindestbestand'], 'default', 'value' => 0],
-            [['name'], 'required'],
             [['aktiv'], 'default', 'value' => 1],
-            [['aktiv'], 'boolean'],
-            [['quantitaet', 'mindestbestand'], 'integer'],
-            [['erstellt_am', 'aktualisiert_am'], 'safe'],
+            [['name'], 'required'],
+            [['name', 'barcode', 'standort'], 'trim'],
             [['name', 'standort'], 'string', 'max' => 150],
             [['barcode'], 'string', 'max' => 64],
-            [['barcode'], 'unique'],
+            [['barcode'], 'unique', 'message' => 'Dieser Barcode ist bereits einem anderen Produkt zugeordnet.'],
+            [['mindestbestand'], 'integer', 'min' => 0],
+            [['fachbereich_id'], 'integer'],
+            [['fachbereich_id'], 'exist', 'skipOnEmpty' => true, 'targetClass' => Fachbereich::class, 'targetAttribute' => ['fachbereich_id' => 'id']],
+            // never mass-assigned: stock only changes via buche(), status via (de)activate
+            [['!quantitaet'], 'integer'],
+            [['!aktiv'], 'boolean'],
         ];
     }
 
@@ -60,10 +65,11 @@ class Produkt extends \yii\db\ActiveRecord
             'name' => Yii::t('app', 'Name'),
             'barcode' => Yii::t('app', 'Barcode'),
             'standort' => Yii::t('app', 'Standort'),
-            'quantitaet' => Yii::t('app', 'Quantitaet'),
+            'quantitaet' => Yii::t('app', 'Bestand'),
             'mindestbestand' => Yii::t('app', 'Mindestbestand'),
             'aktiv' => Yii::t('app', 'Aktiv'),
-            'erstellt_am' => Yii::t('app', 'Erstellt Am'),
+            'erstellt_am' => Yii::t('app', 'Angelegt'),
+            'fachbereich_id' => Yii::t('app', 'Fachbereich'),
             'aktualisiert_am' => Yii::t('app', 'Aktualisiert Am'),
         ];
     }

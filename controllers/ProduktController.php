@@ -90,32 +90,44 @@ class ProduktController extends Controller
     public function actionCreate()
     {
         $model = new Produkt();
+        $model->loadDefaultValues();
+        $anfangsbestand = 0;
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
+        if ($this->request->isPost && $model->load($this->request->post())) {
+            $anfangsbestand = max(0, (int) $this->request->post('anfangsbestand', 0));
+            $model->quantitaet = 0;
+
+            $transaction = Produkt::getDb()->beginTransaction();
+            try {
+                if ($model->save()) {
+                    // opening stock is booked, so the history starts at the very first unit
+                    if ($anfangsbestand === 0 || $model->buche($anfangsbestand, (int) Yii::$app->user->id)) {
+                        $transaction->commit();
+                        Yii::$app->session->setFlash('success', "„{$model->name}“ wurde angelegt.");
+                        return $this->redirect(['view', 'id' => $model->id]);
+                    }
+                }
+                $transaction->rollBack();
+                $model->setIsNewRecord(true);
+                $model->id = null;
+            } catch (\Throwable $e) {
+                $transaction->rollBack();
+                throw $e;
             }
-        } else {
-            $model->loadDefaultValues();
         }
 
         return $this->render('create', [
             'model' => $model,
+            'anfangsbestand' => $anfangsbestand,
         ]);
     }
 
-    /**
-     * Updates an existing Produkt model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param int $id ID
-     * @return string|\yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
-     */
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
 
         if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
+            Yii::$app->session->setFlash('success', 'Änderungen gespeichert.');
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
@@ -187,6 +199,8 @@ class ProduktController extends Controller
             'name' => $produkt->name,
             'quantitaet' => $produkt->quantitaet,
             'mindestbestand' => $produkt->mindestbestand,
+            'barcode' => $produkt->barcode,
+            'standort' => $produkt->standort,
         ];
     }
 

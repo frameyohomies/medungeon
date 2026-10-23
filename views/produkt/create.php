@@ -4,17 +4,21 @@ use yii\helpers\Html;
 
 /** @var yii\web\View $this */
 /** @var app\models\Produkt $model */
+/** @var int $anfangsbestand */
 
-$this->title = Yii::t('app', 'Create Produkt');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Produkts'), 'url' => ['index']];
+$this->title = 'Neues Produkt';
+$this->params['breadcrumbs'][] = ['label' => 'Bestand', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="produkt-create">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title"><?= Html::encode($this->title) ?></h1>
+            <p class="page-head__sub">Neues Produkt in den Bestand aufnehmen</p>
+        </div>
+    </div>
 
-    <?= $this->render('_form', [
-        'model' => $model,
-    ]) ?>
+    <?= $this->render('_form', ['model' => $model, 'anfangsbestand' => $anfangsbestand]) ?>
 
 </div>
