@@ -1,51 +1,103 @@
 <?php
 
-use app\models\Produkt;
+use app\models\ProduktSearch;
+use yii\bootstrap5\ActiveForm;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use yii\grid\ActionColumn;
-use yii\grid\GridView;
-use yii\widgets\Pjax;
 
 /** @var yii\web\View $this */
 /** @var app\models\ProduktSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
-$this->title = Yii::t('app', 'Produkts');
+$this->title = 'Bestand';
 $this->params['breadcrumbs'][] = $this->title;
+
+$istAdmin = (bool) Yii::$app->user->identity?->isRolleAdmin();
+$this->registerJs('window.istAdmin = ' . ($istAdmin ? 'true' : 'false') . ';', \yii\web\View::POS_HEAD);
+
+$z = ProduktSearch::zaehler();
+$filter = $searchModel->filter ?: ProduktSearch::FILTER_ALLE;
+$segmente = [ProduktSearch::FILTER_ALLE => 'Alle', ProduktSearch::FILTER_KNAPP => 'Nachbestellen'];
+if ($istAdmin) {
+    $segmente[ProduktSearch::FILTER_INAKTIV] = 'Deaktiviert';
+}
+$zahlen = [ProduktSearch::FILTER_ALLE => $z['aktiv'], ProduktSearch::FILTER_KNAPP => $z['knapp'], ProduktSearch::FILTER_INAKTIV => $z['inaktiv']];
+
+$iconScan = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5M.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5M3 4.5a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0zm2 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0zm2 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0zm2 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 1 0v7a.5.5 0 0 1-1 0z"/></svg>';
+$iconSearch = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/></svg>';
+$iconPencil = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/></svg>';
+$iconArchive = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/></svg>';
+$iconPlusMinus = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 2M4.5 13a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1z"/></svg>';
 ?>
-<head>
-    <?php $this->registerJs('window.istAdmin = ' . (Yii::$app->user->identity->rolle === 'admin' ? 'true' : 'false') . ';', \yii\web\View::POS_HEAD); ?>
-</head>
 <div class="produkt-index">
-    <h1><?= Html::encode($this->title) ?></h1>
 
-    <?php if (Yii::$app->user->identity->rolle === 'admin'): ?>
-        <p><?= Html::a('Create Produkt', ['create'], ['class' => 'btn btn-success']) ?></p>
-    <?php endif; ?>
-
-    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#scanModal">
-        Scannen
-    </button>
-
-    <?php $form = \yii\bootstrap5\ActiveForm::begin([
-        'method' => 'get',
-        'action' => ['index'],
-    ]); ?>
-    <div class="input-group mb-3">
-        <?= Html::activeTextInput($searchModel, 'q', [
-            'class' => 'form-control',
-            'placeholder' => 'Suche nach Name, Barcode, Standort oder Fachbereich...',
-        ]) ?>
-        <button type="submit" class="btn btn-primary">Suchen</button>
+    <div class="page-head">
+        <div>
+            <h1 class="page-head__title"><?= Html::encode($this->title) ?></h1>
+            <p class="page-head__sub">
+                <?= $z['aktiv'] ?> Produkte
+                <?php if ($z['knapp'] > 0): ?>
+                    · <?= Html::a(
+                        $z['knapp'] . ' unter Mindestbestand',
+                        ['index', 'ProduktSearch' => ['filter' => ProduktSearch::FILTER_KNAPP]],
+                        ['class' => 'text-danger fw-semibold text-decoration-none']
+                    ) ?>
+                <?php endif; ?>
+            </p>
+        </div>
+        <div class="page-head__actions">
+            <?php if ($istAdmin): ?>
+                <?= Html::a('+ Neues Produkt', ['create'], ['class' => 'btn btn-outline-primary']) ?>
+            <?php endif; ?>
+            <button type="button" class="btn btn-primary btn-scan d-none d-md-inline-flex" data-bs-toggle="modal" data-bs-target="#scanModal">
+                <?= $iconScan ?> Scannen
+            </button>
+        </div>
     </div>
-    <?php \yii\bootstrap5\ActiveForm::end(); ?>
+
+    <div class="surface filter-bar">
+        <?php $form = ActiveForm::begin(['method' => 'get', 'action' => ['index']]); ?>
+        <?= Html::activeHiddenInput($searchModel, 'filter') ?>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <div class="search-field flex-grow-1">
+                <span class="search-field__icon"><?= $iconSearch ?></span>
+                <?= Html::activeTextInput($searchModel, 'q', [
+                    'class' => 'form-control',
+                    'placeholder' => 'Name, Barcode, Standort oder Fachbereich…',
+                    'aria-label' => 'Produkte suchen',
+                ]) ?>
+            </div>
+            <?= Html::submitButton('Suchen', ['class' => 'btn btn-primary']) ?>
+            <div class="seg ms-md-2">
+                <?php foreach ($segmente as $key => $label): ?>
+                    <?= Html::a(
+                        Html::encode($label) . ' <span class="seg__count">' . (int) $zahlen[$key] . '</span>',
+                        ['index', 'ProduktSearch' => ['filter' => $key, 'q' => $searchModel->q]],
+                        ['class' => 'seg__item' . ($filter === $key ? ' seg__item--active' : '') . ($key === ProduktSearch::FILTER_KNAPP && $zahlen[$key] > 0 ? ' seg__item--warn' : '')]
+                    ) ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php ActiveForm::end(); ?>
+    </div>
+
+    <?php if (!$dataProvider->getModels()): ?>
+        <div class="surface empty-state">
+            <span class="empty-state__icon" aria-hidden="true">&#128230;</span>
+            <?php if ($searchModel->q): ?>
+                Nichts gefunden für „<?= Html::encode($searchModel->q) ?>“.
+            <?php elseif ($filter === ProduktSearch::FILTER_KNAPP): ?>
+                Alles im grünen Bereich – kein Produkt unter Mindestbestand.
+            <?php else: ?>
+                Keine Produkte.
+            <?php endif; ?>
+        </div>
+    <?php endif; ?>
 
     <div class="row g-3">
         <?php foreach ($dataProvider->getModels() as $model): ?>
             <div class="col-12 col-md-6 col-lg-4">
                 <div
-                    class="card h-100 produkt-card <?= $model->quantitaet <= $model->mindestbestand ? 'produkt-card--warn' : '' ?>"
+                    class="card h-100 produkt-card<?= !$model->aktiv ? ' produkt-card--inactive' : ($model->quantitaet <= $model->mindestbestand ? ' produkt-card--warn' : '') ?>"
                     style="--fach-color: <?= Html::encode($model->fachbereich->farbe ?? '#8ea699') ?>;"
                 >
                     <div class="produkt-card__accent"></div>
@@ -60,7 +112,9 @@ $this->params['breadcrumbs'][] = $this->title;
                             <?php endif; ?>
                         </div>
 
-                        <?php if ($model->quantitaet <= $model->mindestbestand): ?>
+                        <?php if (!$model->aktiv): ?>
+                            <span class="pill pill--inactive mb-2">Deaktiviert</span>
+                        <?php elseif ($model->quantitaet <= $model->mindestbestand): ?>
                             <span class="produkt-card__badge mb-2 d-inline-block">Nachbestellen</span>
                         <?php endif; ?>
 
@@ -80,26 +134,35 @@ $this->params['breadcrumbs'][] = $this->title;
 
                     </div>
                     <div class="card-footer produkt-card__footer">
-                        <?php if (Yii::$app->user->identity->rolle === 'admin'): ?>
-                            <?= Html::a(
-                                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
-  <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
-</svg>',
-                                ['update', 'id' => $model->id],
-                                ['class' => 'btn btn-sm btn-outline-warning', 'encode' => false]
-                            ) ?>
-                            <?= Html::a(
-                                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
-  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-</svg>',
-                                ['delete', 'id' => $model->id],
-                                [
-                                    'class' => 'btn btn-sm btn-outline-danger',
+                        <?php if ($model->aktiv): ?>
+                            <button type="button" class="btn btn-sm produkt-card__book" onclick="buchungOeffnen(<?= (int) $model->id ?>)">
+                                <?= $iconPlusMinus ?> Buchen
+                            </button>
+                        <?php elseif ($istAdmin): ?>
+                            <?= Html::a('Aktivieren', ['aktivieren', 'id' => $model->id], [
+                                'class' => 'btn btn-sm btn-outline-success flex-fill',
+                                'data' => ['method' => 'post'],
+                            ]) ?>
+                        <?php endif; ?>
+
+                        <?php if ($istAdmin): ?>
+                            <div class="produkt-card__tools">
+                                <?= Html::a($iconPencil, ['update', 'id' => $model->id], [
+                                    'class' => 'icon-btn',
                                     'encode' => false,
-                                    'data' => ['confirm' => 'Wirklich löschen?', 'method' => 'post'],
-                                ]
-                            ) ?>
+                                    'title' => 'Bearbeiten',
+                                    'aria-label' => 'Bearbeiten',
+                                ]) ?>
+                                <?php if ($model->aktiv): ?>
+                                    <?= Html::a($iconArchive, ['deaktivieren', 'id' => $model->id], [
+                                        'class' => 'icon-btn icon-btn--danger',
+                                        'encode' => false,
+                                        'title' => 'Deaktivieren',
+                                        'aria-label' => 'Deaktivieren',
+                                        'data' => ['confirm' => 'Produkt deaktivieren? Es verschwindet aus der Liste und kann nicht mehr gebucht werden. Der Verlauf bleibt erhalten.', 'method' => 'post'],
+                                    ]) ?>
+                                <?php endif; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -107,9 +170,14 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php endforeach; ?>
     </div>
 
-    <?= yii\widgets\LinkPager::widget([
-        'pagination' => $dataProvider->getPagination(),
-    ]) ?>
+    <div class="pager-wrap">
+        <?= yii\widgets\LinkPager::widget(['pagination' => $dataProvider->getPagination()]) ?>
+    </div>
+
+    <!-- mobile: primary action within thumb reach -->
+    <button type="button" class="scan-fab d-md-none" data-bs-toggle="modal" data-bs-target="#scanModal" aria-label="Barcode scannen">
+        <?= $iconScan ?> Scannen
+    </button>
 
     <div class="modal fade" id="scanModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">

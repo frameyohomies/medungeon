@@ -25,7 +25,7 @@ class Benutzer extends \yii\db\ActiveRecord
      * ENUM field values
      */
     const ROLLE_ADMIN = 'admin';
-    const ROLLE_ORDIHILFE = 'ordihilfe';
+    const ROLLE_USER = 'user';
 
     /**
      * {@inheritdoc}
@@ -41,7 +41,7 @@ class Benutzer extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['rolle'], 'default', 'value' => 'ordihilfe'],
+            [['rolle'], 'default', 'value' => self::ROLLE_USER],
             [['aktiv'], 'default', 'value' => 1],
             [['entra_oid', 'firstname', 'lastname', 'email'], 'required'],
             [['rolle'], 'string'],
@@ -99,8 +99,8 @@ class Benutzer extends \yii\db\ActiveRecord
     public static function optsRolle()
     {
         return [
-            self::ROLLE_ADMIN => Yii::t('app', 'admin'),
-            self::ROLLE_ORDIHILFE => Yii::t('app', 'ordihilfe'),
+            self::ROLLE_ADMIN => Yii::t('app', 'Admin'),
+            self::ROLLE_USER => Yii::t('app', 'Mitarbeiter'),
         ];
     }
 
@@ -128,13 +128,13 @@ class Benutzer extends \yii\db\ActiveRecord
     /**
      * @return bool
      */
-    public function isRolleOrdihilfe()
+    public function isRolleUser()
     {
-        return $this->rolle === self::ROLLE_ORDIHILFE;
+        return $this->rolle === self::ROLLE_USER;
     }
 
-    public function setRolleToOrdihilfe()
+    public function setRolleToUser()
     {
-        $this->rolle = self::ROLLE_ORDIHILFE;
+        $this->rolle = self::ROLLE_USER;
     }
 }

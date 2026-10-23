@@ -13,6 +13,7 @@ use Yii;
  * @property string|null $standort
  * @property int $quantitaet
  * @property int $mindestbestand
+ * @property int $aktiv
  * @property string $erstellt_am
  * @property string $aktualisiert_am
  *
@@ -39,6 +40,8 @@ class Produkt extends \yii\db\ActiveRecord
             [['barcode', 'standort'], 'default', 'value' => null],
             [['mindestbestand'], 'default', 'value' => 0],
             [['name'], 'required'],
+            [['aktiv'], 'default', 'value' => 1],
+            [['aktiv'], 'boolean'],
             [['quantitaet', 'mindestbestand'], 'integer'],
             [['erstellt_am', 'aktualisiert_am'], 'safe'],
             [['name', 'standort'], 'string', 'max' => 150],
@@ -59,6 +62,7 @@ class Produkt extends \yii\db\ActiveRecord
             'standort' => Yii::t('app', 'Standort'),
             'quantitaet' => Yii::t('app', 'Quantitaet'),
             'mindestbestand' => Yii::t('app', 'Mindestbestand'),
+            'aktiv' => Yii::t('app', 'Aktiv'),
             'erstellt_am' => Yii::t('app', 'Erstellt Am'),
             'aktualisiert_am' => Yii::t('app', 'Aktualisiert Am'),
         ];
@@ -88,11 +92,46 @@ class Produkt extends \yii\db\ActiveRecord
         return new ProduktQuery(get_called_class());
     }
 
-    public function buche($delta, $benutzerId)
+    /**
+     * Books a stock movement and writes the history entry in one transaction.
+     * The product row is locked (SELECT ... FOR UPDATE) so concurrent bookings
+     * always calculate from the current stock. Failure reason: getFirstError('quantitaet').
+     */
+    public function buche(int $delta, int $benutzerId): bool
     {
-        $transaction = Yii::$app->db->beginTransaction();
+        if (!$this->aktiv) {
+            $this->addError('quantitaet', 'Produkt ist deaktiviert.');
+            return false;
+        }
+
+        if ($delta === 0) {
+            $this->addError('quantitaet', 'Die Menge darf nicht 0 sein.');
+            return false;
+        }
+
+        $db = static::getDb();
+        $transaction = $db->beginTransaction();
         try {
-            $neuerBestand = $this->quantitaet + $delta;
+            $aktuell = $db->createCommand(
+                'SELECT [[quantitaet]] FROM {{%produkt}} WHERE [[id]] = :id FOR UPDATE',
+                [':id' => $this->id]
+            )->queryScalar();
+
+            if ($aktuell === false) {
+                $transaction->rollBack();
+                $this->addError('quantitaet', 'Produkt nicht gefunden.');
+                return false;
+            }
+
+            $aktuell = (int) $aktuell;
+            $this->quantitaet = $aktuell;
+            $neuerBestand = $aktuell + $delta;
+
+            if ($neuerBestand < 0) {
+                $transaction->rollBack();
+                $this->addError('quantitaet', "Nicht genug Bestand (aktuell {$aktuell}).");
+                return false;
+            }
 
             $bewegung = new BestandBewegung();
             $bewegung->produkt_id = $this->id;
@@ -100,23 +139,21 @@ class Produkt extends \yii\db\ActiveRecord
             $bewegung->delta = $delta;
             $bewegung->bestand_nach = $neuerBestand;
 
-            if(!$bewegung->save()) {
+            if (!$bewegung->save()) {
                 $transaction->rollBack();
+                $this->addError('quantitaet', 'Buchung konnte nicht gespeichert werden.');
                 return false;
             }
 
-            $this->quantitaet = $neuerBestand;
-            if(!$this->save()) {
-                $transaction->rollBack();
-                return false;
-            }
+            $this->updateAttributes(['quantitaet' => $neuerBestand]);
 
             $transaction->commit();
             return true;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $transaction->rollBack();
+            Yii::error($e, __METHOD__);
+            $this->addError('quantitaet', 'Buchung fehlgeschlagen.');
             return false;
         }
     }
-
 }

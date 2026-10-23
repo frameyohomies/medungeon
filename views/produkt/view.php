@@ -15,16 +15,25 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h1><?= Html::encode($this->title) ?></h1>
 
+    <?php if (Yii::$app->user->identity?->isRolleAdmin()): ?>
     <p>
         <?= Html::a(Yii::t('app', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a(Yii::t('app', 'Delete'), ['delete', 'id' => $model->id], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => Yii::t('app', 'Are you sure you want to delete this item?'),
-                'method' => 'post',
-            ],
-        ]) ?>
+        <?php if ($model->aktiv): ?>
+            <?= Html::a('Deaktivieren', ['deaktivieren', 'id' => $model->id], [
+                'class' => 'btn btn-outline-danger',
+                'data' => [
+                    'confirm' => 'Produkt deaktivieren? Der Verlauf bleibt erhalten.',
+                    'method' => 'post',
+                ],
+            ]) ?>
+        <?php else: ?>
+            <?= Html::a('Aktivieren', ['aktivieren', 'id' => $model->id], [
+                'class' => 'btn btn-outline-success',
+                'data' => ['method' => 'post'],
+            ]) ?>
+        <?php endif; ?>
     </p>
+    <?php endif; ?>
 
     <?= DetailView::widget([
         'model' => $model,
@@ -35,6 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'standort',
             'quantitaet',
             'mindestbestand',
+            'aktiv:boolean',
             'erstellt_am',
             'aktualisiert_am',
         ],

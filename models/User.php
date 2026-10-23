@@ -12,7 +12,8 @@ class User extends Benutzer implements IdentityInterface
      */
     public static function findIdentity($id): static|null
     {
-        return static::findOne($id);
+        // deactivated users are logged out on their next request
+        return static::findOne(['id' => $id, 'aktiv' => 1]);
     }
 
     /**
@@ -55,6 +56,7 @@ class User extends Benutzer implements IdentityInterface
      */
     public function validateAuthKey($authKey): bool
     {
-        return true;
+        // No auth keys: cookie-based auto-login is disabled (see config/web.php).
+        return false;
     }
 }
