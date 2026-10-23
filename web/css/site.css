@@ -2081,11 +2081,12 @@ a.desc:after {
     text-decoration: none;
 }
 
+.produkt-card__link,
 .produkt-card__link:hover,
+.produkt-card__link:focus,
 .produkt-card__link:focus-visible {
-    color: var(--color-primary-light);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    color: inherit;
+    text-decoration: none;
 }
 
 .produkt-card__link:focus-visible {
