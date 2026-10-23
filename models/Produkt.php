@@ -13,6 +13,7 @@ use Yii;
  * @property string|null $standort
  * @property int $quantitaet
  * @property int $mindestbestand
+ * @property int $aktiv
  * @property string $erstellt_am
  * @property string $aktualisiert_am
  *
@@ -39,6 +40,8 @@ class Produkt extends \yii\db\ActiveRecord
             [['barcode', 'standort'], 'default', 'value' => null],
             [['mindestbestand'], 'default', 'value' => 0],
             [['name'], 'required'],
+            [['aktiv'], 'default', 'value' => 1],
+            [['aktiv'], 'boolean'],
             [['quantitaet', 'mindestbestand'], 'integer'],
             [['erstellt_am', 'aktualisiert_am'], 'safe'],
             [['name', 'standort'], 'string', 'max' => 150],
@@ -59,6 +62,7 @@ class Produkt extends \yii\db\ActiveRecord
             'standort' => Yii::t('app', 'Standort'),
             'quantitaet' => Yii::t('app', 'Quantitaet'),
             'mindestbestand' => Yii::t('app', 'Mindestbestand'),
+            'aktiv' => Yii::t('app', 'Aktiv'),
             'erstellt_am' => Yii::t('app', 'Erstellt Am'),
             'aktualisiert_am' => Yii::t('app', 'Aktualisiert Am'),
         ];
@@ -95,6 +99,11 @@ class Produkt extends \yii\db\ActiveRecord
      */
     public function buche(int $delta, int $benutzerId): bool
     {
+        if (!$this->aktiv) {
+            $this->addError('quantitaet', 'Produkt ist deaktiviert.');
+            return false;
+        }
+
         if ($delta === 0) {
             $this->addError('quantitaet', 'Die Menge darf nicht 0 sein.');
             return false;

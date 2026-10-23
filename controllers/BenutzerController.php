@@ -11,7 +11,11 @@ use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 
 /**
- * BenutzerController implements the CRUD actions for Benutzer model.
+ * BenutzerController: admin view of users.
+ *
+ * Users are provisioned from the Entra tenant on first login (SiteController::onAuthSuccess),
+ * name/email/role are synced on every login. Users are never deleted (their bookings must
+ * stay traceable) - they are deactivated instead.
  */
 class BenutzerController extends Controller
 {
@@ -26,7 +30,8 @@ class BenutzerController extends Controller
                 'verbs' => [
                     'class' => VerbFilter::class,
                     'actions' => [
-                        'delete' => ['POST'],
+                        'deaktivieren' => ['POST'],
+                        'aktivieren' => ['POST'],
                     ],
                 ],
                 'access' => [
@@ -35,9 +40,7 @@ class BenutzerController extends Controller
                         [
                             'allow' => true,
                             'roles' => ['@'],
-                            'matchCallback' => function ($rule, $action) {
-                                return Yii::$app->user->identity->rolle === 'admin';
-                            },
+                            'matchCallback' => fn () => (bool) Yii::$app->user->identity?->isRolleAdmin(),
                         ],
                     ],
                 ],
@@ -75,28 +78,6 @@ class BenutzerController extends Controller
     }
 
     /**
-     * Creates a new Benutzer model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return string|\yii\web\Response
-     */
-    public function actionCreate()
-    {
-        $model = new Benutzer();
-
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-            $model->loadDefaultValues();
-        }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
      * Updates an existing Benutzer model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param int $id ID
@@ -107,8 +88,14 @@ class BenutzerController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if ($this->request->isPost) {
+            $aktiv = (int) (bool) ($this->request->post($model->formName())['aktiv'] ?? $model->aktiv);
+            if ($aktiv === 0 && (int) $model->id === (int) Yii::$app->user->id) {
+                Yii::$app->session->setFlash('error', 'Du kannst dich nicht selbst deaktivieren.');
+            } else {
+                $model->updateAttributes(['aktiv' => $aktiv]);
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
         }
 
         return $this->render('update', [
@@ -117,17 +104,29 @@ class BenutzerController extends Controller
     }
 
     /**
-     * Deletes an existing Benutzer model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
+     * Deactivates a user: blocks login and ends active sessions on the next request.
      */
-    public function actionDelete($id)
+    public function actionDeaktivieren($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
 
-        return $this->redirect(['index']);
+        if ((int) $model->id === (int) Yii::$app->user->id) {
+            Yii::$app->session->setFlash('error', 'Du kannst dich nicht selbst deaktivieren.');
+        } else {
+            $model->updateAttributes(['aktiv' => 0]);
+            Yii::$app->session->setFlash('success', 'Benutzer deaktiviert.');
+        }
+
+        return $this->redirect(['view', 'id' => $model->id]);
+    }
+
+    public function actionAktivieren($id)
+    {
+        $model = $this->findModel($id);
+        $model->updateAttributes(['aktiv' => 1]);
+        Yii::$app->session->setFlash('success', 'Benutzer aktiviert.');
+
+        return $this->redirect(['view', 'id' => $model->id]);
     }
 
     /**

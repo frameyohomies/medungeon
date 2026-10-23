@@ -7,7 +7,6 @@ use app\models\BestandBewegung;
 use app\models\BestandBewegungSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 
 /**
@@ -26,21 +25,13 @@ class BestandBewegungController extends Controller
         return array_merge(
             parent::behaviors(),
             [
-                'verbs' => [
-                    'class' => VerbFilter::class,
-                    'actions' => [
-                        'delete' => ['POST'],
-                    ],
-                ],
                 'access' => [
                     'class' => AccessControl::class,
                     'rules' => [
                         [
                             'allow' => true,
                             'roles' => ['@'],
-                            'matchCallback' => function ($rule, $action) {
-                                return Yii::$app->user->identity->rolle === 'admin';
-                            },
+                            'matchCallback' => fn () => (bool) Yii::$app->user->identity?->isRolleAdmin(),
                         ],
                     ],
                 ],
@@ -75,6 +66,45 @@ class BestandBewegungController extends Controller
         return $this->render('view', [
             'model' => $this->findModel($id),
         ]);
+    }
+
+    /**
+     * Exports the (filtered) history as CSV for audits. Same filters as the index page.
+     */
+    public function actionExport(): \yii\web\Response
+    {
+        $searchModel = new BestandBewegungSearch();
+        $dataProvider = $searchModel->search($this->request->queryParams, null, false);
+
+        $fh = fopen('php://temp', 'r+');
+        fwrite($fh, "\xEF\xBB\xBF"); // UTF-8 BOM so Excel shows umlauts correctly
+        fputcsv($fh, ['ID', 'Zeitpunkt', 'Produkt', 'Barcode', 'Menge', 'Bestand danach', 'Benutzer', 'E-Mail'], ';');
+
+        foreach ($dataProvider->query->batch(500) as $rows) {
+            foreach ($rows as $m) {
+                /** @var BestandBewegung $m */
+                fputcsv($fh, [
+                    $m->id,
+                    $m->gebucht_am,
+                    $m->produkt->name ?? '',
+                    $m->produkt->barcode ?? '',
+                    $m->delta,
+                    $m->bestand_nach,
+                    $m->benutzer ? trim($m->benutzer->firstname . ' ' . $m->benutzer->lastname) : '',
+                    $m->benutzer->email ?? '',
+                ], ';');
+            }
+        }
+
+        rewind($fh);
+        $csv = stream_get_contents($fh);
+        fclose($fh);
+
+        return Yii::$app->response->sendContentAsFile(
+            $csv,
+            'verlauf_' . date('Y-m-d_His') . '.csv',
+            ['mimeType' => 'text/csv; charset=UTF-8']
+        );
     }
 
     /**

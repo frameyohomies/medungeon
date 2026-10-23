@@ -12,7 +12,8 @@ class User extends Benutzer implements IdentityInterface
      */
     public static function findIdentity($id): static|null
     {
-        return static::findOne($id);
+        // deactivated users are logged out on their next request
+        return static::findOne(['id' => $id, 'aktiv' => 1]);
     }
 
     /**

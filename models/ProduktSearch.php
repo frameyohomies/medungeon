@@ -14,15 +14,22 @@ class ProduktSearch extends Produkt
     /**
      * {@inheritdoc}
      */
+    /** Free-text search over name, barcode, location and department */
+    public $q;
+
+    /** Admins only: also show deactivated products */
+    public $inaktiv;
+
     public function rules()
     {
         return [
             [['id', 'quantitaet', 'mindestbestand'], 'integer'],
             [['name', 'barcode', 'standort', 'erstellt_am', 'aktualisiert_am'], 'safe'],
+            [['q'], 'string', 'max' => 150],
+            [['inaktiv'], 'boolean'],
         ];
     }
 
-    public $q;
     /**
      * {@inheritdoc}
      */
@@ -42,51 +49,40 @@ class ProduktSearch extends Produkt
      */
     public function search($params, $formName = null)
     {
-        $query = Produkt::find();
-
-        // add conditions that should always apply here
+        $query = Produkt::find()->alias('produkt')->joinWith('fachbereich');
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => ['name' => SORT_ASC],
+                'attributes' => ['name' => ['asc' => ['produkt.name' => SORT_ASC], 'desc' => ['produkt.name' => SORT_DESC]]],
+            ],
         ]);
 
         $this->load($params, $formName);
 
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
+            $query->where('0=1');
             return $dataProvider;
         }
 
-        // grid filtering conditions
+        $istAdmin = (bool) \Yii::$app->user->identity?->isRolleAdmin();
+        if (!($istAdmin && $this->inaktiv)) {
+            $query->andWhere(['produkt.aktiv' => 1]);
+        }
+
         $query->andFilterWhere([
-            'id' => $this->id,
-            'quantitaet' => $this->quantitaet,
-            'mindestbestand' => $this->mindestbestand,
-            'erstellt_am' => $this->erstellt_am,
-            'aktualisiert_am' => $this->aktualisiert_am,
+            'produkt.id' => $this->id,
+            'produkt.quantitaet' => $this->quantitaet,
+            'produkt.mindestbestand' => $this->mindestbestand,
         ]);
 
-        $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'barcode', $this->barcode])
-            ->andFilterWhere(['like', 'standort', $this->standort]);
+        $query->andFilterWhere(['like', 'produkt.name', $this->name])
+            ->andFilterWhere(['like', 'produkt.barcode', $this->barcode])
+            ->andFilterWhere(['like', 'produkt.standort', $this->standort]);
 
-        return $dataProvider;
-
-        $query = Produkt::find()->joinWith('fachbereich');
-
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-        ]);
-
-        $this->load($params);
-
-        if (!$this->validate()) {
-            return $dataProvider;
-        }
-
-        if (!empty($this->q)) {
-            $query->andFilterWhere(['or',
+        if ($this->q !== null && $this->q !== '') {
+            $query->andWhere(['or',
                 ['like', 'produkt.name', $this->q],
                 ['like', 'produkt.barcode', $this->q],
                 ['like', 'produkt.standort', $this->q],

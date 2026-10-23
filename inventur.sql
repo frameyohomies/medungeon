@@ -1,3 +1,6 @@
+-- DEPRECATED: the schema lives in migrations/ now (php yii migrate).
+-- This file is kept only as an example seed for a local dev database.
+
 CREATE DATABASE IF NOT EXISTS inventur
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
@@ -44,7 +47,7 @@ CREATE TABLE bestand_bewegung (
 
 INSERT INTO benutzer (entra_oid, firstname, lastname, email, rolle) VALUES
     ('test-oid-admin-001', 'Admin', 'Test', 'admin.test@medino.at', 'admin'),
-    ('test-oid-user-001', 'Max', 'Mustermann', 'max.mustermann@medino.at', 'ordihilfe');
+    ('test-oid-user-001', 'Max', 'Mustermann', 'max.mustermann@medino.at', 'user');
 
 INSERT INTO produkt (name, barcode, standort, quantitaet, mindestbestand) VALUES
     ('Einmalhandschuhe (Box)', '4006381333931', 'Lager Regal A, Fach 1', 50, 10);

@@ -6,10 +6,9 @@ use yii\widgets\DetailView;
 /** @var yii\web\View $this */
 /** @var app\models\BestandBewegung $model */
 
-$this->title = $model->id;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Verlauf'), 'url' => ['index']];
+$this->title = 'Buchung #' . $model->id;
+$this->params['breadcrumbs'][] = ['label' => 'Verlauf', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
-\yii\web\YiiAsset::register($this);
 ?>
 <div class="bestand-bewegung-view">
 
@@ -19,11 +18,33 @@ $this->params['breadcrumbs'][] = $this->title;
         'model' => $model,
         'attributes' => [
             'id',
-            'produkt_id',
-            'benutzer_id',
-            'delta',
-            'bestand_nach',
-            'gebucht_am',
+            [
+                'label' => 'Zeitpunkt',
+                'value' => $model->gebucht_am,
+                'format' => ['datetime', 'php:d.m.Y H:i:s'],
+            ],
+            [
+                'label' => 'Produkt',
+                'format' => 'raw',
+                'value' => $model->produkt
+                    ? Html::a(Html::encode($model->produkt->name), ['/produkt/view', 'id' => $model->produkt_id])
+                        . ($model->produkt->barcode ? ' <span class="text-muted">(' . Html::encode($model->produkt->barcode) . ')</span>' : '')
+                    : '#' . $model->produkt_id,
+            ],
+            [
+                'label' => 'Menge',
+                'value' => ($model->delta > 0 ? '+' : '') . $model->delta,
+            ],
+            [
+                'label' => 'Bestand danach',
+                'value' => $model->bestand_nach,
+            ],
+            [
+                'label' => 'Benutzer',
+                'value' => $model->benutzer
+                    ? trim($model->benutzer->firstname . ' ' . $model->benutzer->lastname) . ' <' . $model->benutzer->email . '>'
+                    : '#' . $model->benutzer_id,
+            ],
         ],
     ]) ?>
 

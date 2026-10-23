@@ -26,7 +26,8 @@ class ProduktController extends Controller
                 'verbs' => [
                     'class' => VerbFilter::className(),
                     'actions' => [
-                        'delete' => ['POST'],
+                        'deaktivieren' => ['POST'],
+                        'aktivieren' => ['POST'],
                         'buchen' => ['POST'],
                     ],
                 ],
@@ -35,10 +36,10 @@ class ProduktController extends Controller
                     'rules' => [
                         // product master data: admins only
                         [
-                            'actions' => ['create', 'update', 'delete'],
+                            'actions' => ['create', 'update', 'deaktivieren', 'aktivieren'],
                             'allow' => true,
                             'roles' => ['@'],
-                            'matchCallback' => fn () => Yii::$app->user->identity->rolle === 'admin',
+                            'matchCallback' => fn () => (bool) Yii::$app->user->identity?->isRolleAdmin(),
                         ],
                         // viewing, scanning and booking: any signed-in user
                         [
@@ -124,17 +125,25 @@ class ProduktController extends Controller
     }
 
     /**
-     * Deletes an existing Produkt model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param int $id ID
-     * @return \yii\web\Response
-     * @throws NotFoundHttpException if the model cannot be found
+     * Products are never deleted (their history must stay traceable) - deactivated instead.
+     * Deactivated products are hidden from the list and cannot be scanned or booked.
      */
-    public function actionDelete($id)
+    public function actionDeaktivieren($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+        $model->updateAttributes(['aktiv' => 0]);
+        Yii::$app->session->setFlash('success', "„{$model->name}“ wurde deaktiviert.");
 
         return $this->redirect(['index']);
+    }
+
+    public function actionAktivieren($id)
+    {
+        $model = $this->findModel($id);
+        $model->updateAttributes(['aktiv' => 1]);
+        Yii::$app->session->setFlash('success', "„{$model->name}“ wurde wieder aktiviert.");
+
+        return $this->redirect(['view', 'id' => $model->id]);
     }
 
     public function actionBuchen($id)
@@ -158,7 +167,7 @@ class ProduktController extends Controller
     {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $produkt = Produkt::findOne(['barcode' => $barcode]);
+        $produkt = Produkt::findOne(['barcode' => (string) $barcode, 'aktiv' => 1]);
 
         if (!$produkt) {
             return ['success' => false];

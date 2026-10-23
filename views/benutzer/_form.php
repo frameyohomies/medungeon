@@ -12,11 +12,10 @@ use yii\widgets\ActiveForm;
 
     <?php $form = ActiveForm::begin(); ?>
 
-    <?= $form->field($model, 'firstname')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'lastname')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'rolle')->dropDownList([ 'admin' => 'Admin', 'user' => 'Mitarbeiter', ], ['prompt' => '']) ?>
+    <p class="text-muted small">
+        Name, E-Mail und Rolle werden bei jedem Login aus Microsoft Entra übernommen.
+        Admin ist, wer im Tenant die Rolle <em>Global Administrator</em> hat.
+    </p>
 
     <?= $form->field($model, 'aktiv')->checkbox() ?>
 

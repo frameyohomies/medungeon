@@ -33,7 +33,16 @@ $this->params['breadcrumbs'][] = $this->title;
             'email:email',
             'rolle',
             [
+                'attribute' => 'aktiv',
+                'format' => 'raw',
+                'filter' => [1 => 'Aktiv', 0 => 'Deaktiviert'],
+                'value' => fn (Benutzer $m) => $m->aktiv
+                    ? '<span class="badge bg-success">Aktiv</span>'
+                    : '<span class="badge bg-secondary">Deaktiviert</span>',
+            ],
+            [
                 'class' => ActionColumn::className(),
+                'template' => '{view} {update}',
                 'urlCreator' => function ($action, Benutzer $model, $key, $index, $column) {
                     return Url::toRoute([$action, 'id' => $model->id]);
                  }
