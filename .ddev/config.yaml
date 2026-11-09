@@ -11,7 +11,8 @@ database:
     version: "8.4"
 use_dns_when_possible: true
 composer_version: "2"
-web_environment: []
+web_environment:
+    - YII_ENV=dev
 nodejs_version: "24"
 corepack_enable: false
 default_container_timeout: "240"

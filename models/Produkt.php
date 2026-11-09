@@ -38,13 +38,15 @@ class Produkt extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
+            // trim first, then empty -> NULL (barcode is UNIQUE, so '' would collide)
+            [['name', 'barcode', 'standort'], 'trim'],
             [['barcode', 'standort', 'fachbereich_id'], 'default', 'value' => null],
             [['mindestbestand'], 'default', 'value' => 0],
             [['aktiv'], 'default', 'value' => 1],
             [['name'], 'required'],
-            [['name', 'barcode', 'standort'], 'trim'],
             [['name', 'standort'], 'string', 'max' => 150],
             [['barcode'], 'string', 'max' => 64],
+            [['barcode'], 'match', 'pattern' => '/^\d+$/', 'message' => 'Der Barcode darf nur Ziffern enthalten.'],
             [['barcode'], 'unique', 'message' => 'Dieser Barcode ist bereits einem anderen Produkt zugeordnet.'],
             [['mindestbestand'], 'integer', 'min' => 0],
             [['fachbereich_id'], 'integer'],

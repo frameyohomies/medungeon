@@ -7,6 +7,10 @@
 
 /config/params-local.php
 
+# certificates / private keys
+*.pem
+*.key
+
 .env
 .env.local
 /config/db.php
