@@ -8,8 +8,10 @@
  * @license https://www.yiiframework.com/license/
  */
 
-defined('YII_DEBUG') or define('YII_DEBUG', true);
-defined('YII_ENV') or define('YII_ENV', 'dev');
+// same as web/index.php: DDEV sets YII_ENV=dev, otherwise production (gii/debug are dev-only packages)
+$yiiEnv = getenv('YII_ENV') ?: 'prod';
+defined('YII_ENV') or define('YII_ENV', $yiiEnv);
+defined('YII_DEBUG') or define('YII_DEBUG', $yiiEnv === 'dev');
 
 require __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/vendor/yiisoft/yii2/Yii.php';
